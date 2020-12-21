@@ -1,0 +1,10 @@
+$vt-font-family: IRANSans, Helvetica, "Roboto", Arial, sans-serif !default;
+$vt-toast-min-height: 50px !default;
+
+@import "vue-toastification/src/scss/_variables";
+@import "vue-toastification/src/scss/_toastContainer";
+@import "vue-toastification/src/scss/_toast";
+@import "vue-toastification/src/scss/_closeButton";
+@import "vue-toastification/src/scss/_progressBar";
+@import "vue-toastification/src/scss/_icon";
+@import "vue-toastification/src/scss/animations/_bounce";

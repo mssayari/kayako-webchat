@@ -1,0 +1,741 @@
+<template>
+  <div class="panel h-screen font-normal">
+    <header class="fixed bg-kayako-purple w-full shadow">
+      <div class="w-full mx-auto px-4 sm:px-6 lg:px-6">
+        <div class="flex flex-row-reverse items-center justify-between h-12">
+          <div class="flex items-center flex-row-reverse">
+            <div class="-mr-2 flex sm:hidden">
+              <!-- Mobile menu button -->
+              <button
+                  class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white focus:outline-none focus:ring-0">
+                <span class="sr-only">Open main menu</span>
+                <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+              </button>
+            </div>
+            <div class="flex-shrink-0 hidden sm:block">
+              <img class="h-8" src="../assets/images/logo_fa.svg" alt="Workflow">
+            </div>
+            <div class="">
+              <div class="mr-5 flex flex-row-reverse items-baseline space-x-4">
+                <!--<a href="#" class="px-3 py-2 rounded-md text-sm text-white">پنل گفتگو</a>-->
+                <!--<a href="#" class="px-3 py-2 rounded-md text-sm text-gray-400 hover:text-white">آمار</a>-->
+              </div>
+            </div>
+          </div>
+          <div class="">
+            <div class="mr-4 flex items-center md:mr-6">
+
+              <!-- Profile dropdown -->
+              <div class="mr-3 relative z-10" v-click-outside="closeUserMenu">
+                <button @click.stop="userDropDownMenu = !userDropDownMenu"
+                        class="max-w-xs rounded-full flex items-center text-sm focus:outline-none focus:ring-0"
+                        id="user-menu" aria-haspopup="true">
+                  <svg class="text-white hidden sm:block mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                       viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clip-rule="evenodd"/>
+                  </svg>
+                  <span class="text-white mr-1 hidden sm:block">{{ currentUser.fullName }}</span>
+                  <span class="sr-only">Open user menu</span>
+                  <span class="h-8 w-8 rounded-full border overflow-hidden bg-gray-100 border-gray-100 shadow-sm">
+                    <svg class="h-full w-full text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path
+                          d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                  </span>
+                  <div :class="'status-'+currentUser.status"></div>
+                </button>
+                <div v-if="userDropDownMenu"
+                     class="origin-top-right z-20 absolute left-0 text-right mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-0"
+                     role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
+                  <a @click="updateStatus(1)"
+                     class="flex hand flex-row-reverse items-center justify-between px-4 py-2 text-sm
+                          text-gray-700 hover:bg-gray-100 cursor-pointer"
+                     role="menuitem">
+                    <span>آنلاین</span>
+                    <div
+                        class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-green-400 z-2"></div>
+                  </a>
+                  <a @click="updateStatus(5)"
+                     class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm text-gray-700
+                          hover:bg-gray-100 cursor-pointer"
+                     role="menuitem">
+                    <span>مشغول</span>
+                    <div
+                        class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-red-400 z-2"></div>
+                  </a>
+                  <a @click="updateStatus(7)"
+                     class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm text-gray-700
+                          hover:bg-gray-100 cursor-pointer"
+                     role="menuitem">
+                    <span>مخفی</span>
+                    <div
+                        class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-gray-400 z-2"></div>
+                  </a>
+                  <hr/>
+                  <a v-on:click="logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                     role="menuitem">خروج</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-5 flex-row-reverse">
+      <!-- chat area -->
+      <div class="flex flex-col col-span-5 md:col-span-4 bg-gray-100 pt-12 justify-end h-screen text-sm ">
+        <ul class="list-reset w-full flex border-b flex-row-reverse border-gray-300 text-gray-500 bg-gray-100"
+            v-if="activeChats.length > 0">
+          <li class="mr-1" v-for="(item, index) in activeChats" v-bind:key="index">
+            <a class="py-4 px-4 flex items-center rtl hover:text-gray-900"
+               :class="{'chat-tab-active':item.chatObjectId === selectedChat}" @click="selectChat(item.chatObjectId)">
+              <span class="cursor-pointer">
+                {{ item.userFullName }}
+              </span>
+              <span class="flex h-3 w-3 relative mr-2">
+                <span v-if="item.newMessagesCount > 0"
+                      class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span v-if="!item.warning" class="relative inline-flex rounded-full h-3 w-3"
+                      :class="{'bg-green-500':item.active,'bg-gray-500':!item.active}"></span>
+              </span>
+              <span v-if="item.warning" class="mr-2 h-3 w-3 border-2 border-white rounded-full bg-red-400"></span>
+            </a>
+          </li>
+        </ul>
+        <div class="tools flex flex-row-reverse justify-start border-gray-200 border-b py-1 space-x-3 mr-3"
+             v-if="selectedChat">
+          <div class="relative inline-block text-right px-2" v-click-outside="closeCannedMenu">
+            <button type="button" :disabled="!isSelectedChatActive" @click.prevent="toggleCannedMenu"
+                    class="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-800 focus:outline-none focus:ring-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   class="-ml-1 mr-2 h-5 w-5 text-gray-500">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              پیغام های آماده
+            </button>
+            <div v-if="isCannedMenuOpen"
+                 class="origin-top-right absolute right-0 w-60 rounded-md shadow-lg bg-white ring-1 ring-black
+                 ring-opacity-5 overflow-y-auto max-h-72">
+              <ul class="text-gray-500 pr-1">
+                <canned-item v-for="(canned, index) in cannedMessages.children" :key="index"
+                             :item="canned" :clickHandler="sendCanned"></canned-item>
+              </ul>
+            </div>
+          </div>
+          <div class="relative inline-block text-right px-2" v-click-outside="closeTransferMenu">
+            <button type="button" @click="toggleTransferMenu"
+                    class="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-800 focus:outline-none focus:ring-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   class="-ml-1 mr-2 h-5 w-5">
+                <polyline points="15 10 20 15 15 20"></polyline>
+                <path d="M4 4v7a4 4 0 0 0 4 4h12"></path>
+              </svg>
+              انتقال گفتگو
+            </button>
+            <div v-if="isTransferMenuOpen"
+                 class="origin-top-right absolute right-0 w-60 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+              <ul class="text-gray-500">
+                <li class="">
+                  <button @click="toggleTransferSubMenu('dep')"
+                          class="inline-flex items-center flex-row-reverse justify-between w-full focus:outline-none text-sm hover:text-gray-800 px-2 py-2"
+                          aria-haspopup="true">
+                    <span class="ms-4">دپارتمان ها</span>
+                    <svg class="hidden sm:block mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                  <ul v-if="isTransferDepMenuOpen"
+                      class="m-1 space-y-2 text-sm text-gray-500 rounded-md shadow-inner bg-gray-50 overflow-y-auto
+                      max-h-64"
+                      aria-label="submenu">
+                    <li v-for="(department, index) in departments" :key="index"
+                        class="px-2 pb-1 hover:text-gray-800">
+                      <span class="cursor-pointer"
+                            @click="transfer(selectedChat,'department',department.id)">{{ department.title }}</span>
+                    </li>
+                  </ul>
+                </li>
+                <li class="">
+                  <button @click="toggleTransferSubMenu('team')"
+                          class="inline-flex items-center flex-row-reverse justify-between w-full focus:outline-none text-sm
+                          hover:text-gray-800 px-2 py-2"
+                          aria-haspopup="true">
+                    <span class="ms-4">تیم ها</span>
+                    <svg class="hidden sm:block mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                  <ul v-if="isTransferTeamMenuOpen"
+                      class="m-1 space-y-2 text-sm text-gray-500 rounded-md shadow-inner bg-gray-50 overflow-y-auto
+                      max-h-64"
+                      aria-label="submenu">
+                    <li v-for="(team, index) in teams" :key="index"
+                        class="px-2 pb-1 hover:text-gray-800">
+                      <span class="cursor-pointer" @click="transfer(selectedChat,'staffgroup',team.id)">
+                        {{ team.title }}
+                      </span>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <button type="button" @click="endChat()"
+                  class="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm text-red-500 bg-white hover:bg-gray-50 hover:text-red-800 focus:outline-none focus:ring-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="feather feather-x -ml-1 mr-2 h-4 w-4">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            اتمام گفتگو
+          </button>
+        </div>
+        <div class="h-full bg-white text-gray-800 text-sm overflow-y-auto font-normal" ref="chatContainer">
+          <div class="h-full flex p-8 items-center justify-center" v-if="!selectedChat">
+            <img src="../assets/images/logo.svg" class="w-1/2">
+          </div>
+
+          <div v-if="selectedChat">
+            <messages :chat-object-id="selectedChat"></messages>
+          </div>
+        </div>
+        <footer class="h-1/6 bg-white">
+          <div class="flex justify-center h-full">
+            <div class="relative w-full py-1">
+              <div class="absolute inset-y-0 flex items-center pl-2">
+                <button type="button" :disabled="!isSelectedChatActive" @click="selectAttachment()">
+                  <svg class="mx-auto h-10 w-10 text-gray-400" stroke="#43be80" fill="none" viewBox="0 0 48 48"
+                       aria-hidden="true">
+                    <path
+                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              <textarea :disabled="!isSelectedChatActive" v-model="message" @keydown.enter.prevent="sendMessageHandler"
+                        class="mt-1 rtl block w-full h-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
+                        placeholder="متن پیغام"></textarea>
+              <input ref="attachment" accept="image/*" name="attachment" type="file" class="hidden"
+                     @change="sendAttachment">
+            </div>
+          </div>
+        </footer>
+      </div>
+      <!-- side menu -->
+      <aside class="flex hidden col-span-1 md:block h-screen shadow pt-12 pb-16 h-full overflow-y-hidden">
+        <div>
+          <nav>
+            <nav class="flex flex-row-reverse bg-gray-50 justify-between px-2">
+              <button @click="changeSideMenuTab('chats')" :class="{'side-tab-active':sideMenuSelectedTab=== 'chats'}"
+                      class="side-tab block hover:text-gray-800 focus:outline-none">
+                درخواست های گفتگو
+              </button>
+              <button @click="changeSideMenuTab('agents')" :class="{'side-tab-active':sideMenuSelectedTab=== 'agents'}"
+                      class="side-tab block hover:text-gray-800 focus:outline-none">
+                کارشناسان
+              </button>
+            </nav>
+          </nav>
+        </div>
+        <!-- chat requests -->
+        <div v-if="sideMenuSelectedTab==='chats'" class="pr-2">
+          <ul class="divide-y divide-gray-100">
+            <li v-for="(user, index) in PendingChatList" v-bind:key="index"
+                class="flex flex-col pt-2 mt-3 flex-row-reverse hover:text-gray-800 cursor-pointer">
+              <div class="flex items-center flex-row-reverse">
+                <div class="flex-shrink-0 h-8 w-8">
+                <span class="inline-block h-8 w-8 rounded-full overflow-hidden bg-gray-100">
+                  <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                </span>
+                </div>
+                <div class="mr-3">
+                  <div class="text-sm">
+                    {{ user.userFullName }}
+                  </div>
+                </div>
+              </div>
+              <div class="text-sm px-1 py-1 text-right text-gray-500 pr-10">{{ user.subject }}</div>
+              <div class="flex flex-row-reverse actions px-1 justify-center">
+                <button type="button" @click="accept(user.chatObjectId,index,)"
+                        class="text-green-500 ml-1 inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm bg-white hover:bg-gray-50 hover:text-green-800 focus:outline-none focus:ring-0inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm bg-white hover:bg-gray-50 hover:text-red-800 focus:outline-none focus:ring-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="feather feather-check w-4 h-4">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span class="text-sm pl-1">شروع گفتگو</span>
+                </button>
+                <button type="button" @click="reject(user.chatObjectId,index)"
+                        class="text-red-500 inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm bg-white hover:bg-gray-50 hover:text-red-800 focus:outline-none focus:ring-0inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm bg-white hover:bg-gray-50 hover:text-red-800 focus:outline-none focus:ring-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="feather feather-x w-4 h-4">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  <span class="text-sm pl-1">رد درخواست</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <!-- staffs -->
+        <div v-if="sideMenuSelectedTab==='agents'" class="text-right overflow-y-auto h-full pr-2 text-gray-500 text-sm">
+          <template v-for="(team, index) in staffList" v-bind:key="index">
+            <h3 class="pt-2 pr-4 text-purple-700 font-medium">{{ team.title }}</h3>
+            <ul class="divide-y divide-gray-100">
+
+              <li v-for="(staff, index) in team.staff" v-bind:key="index"
+                  class="flex items-center pt-2 mt-3 flex-row-reverse hover:text-gray-800 cursor-pointer">
+                <div class="flex-shrink-0 h-8 w-8 relative">
+                  <span class="inline-block h-8 w-8 rounded-full overflow-hidden bg-gray-100">
+                    <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                      <path
+                          d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                  </span>
+                  <div :class="'status-'+staff.status"></div>
+                </div>
+                <div class="mr-3">
+                  <div class="text-sm">
+                    {{ staff.fullName }}
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </template>
+        </div>
+      </aside>
+    </div>
+  </div>
+</template>
+
+<script>
+// @ is an alias to /src
+import {useToast} from "vue-toastification";
+import {POSITION} from "vue-toastification";
+
+import custom from "@/custom";
+import CannedItem from "@/components/CannedItem";
+import Messages from "@/components/Messages";
+
+export default {
+  name: "Panel",
+  components: {Messages, CannedItem},
+  data() {
+    return {
+      userDropDownMenu: false,
+      isMobileDevice: false,
+      isSideMenuOpen: false,
+      isCannedMenuOpen: false,
+      isTransferMenuOpen: false,
+      isTransferDepMenuOpen: false,
+      isTransferTeamMenuOpen: false,
+      cron: null,
+      cronInterval: 10000,
+      sideMenuSelectedTab: 'chats', //agents
+      currentUser: null,
+      staffList: [],
+      cannedMessages: {},
+      departments: [],
+      teams: [],
+      PendingChatList: [],
+      activeChats: [],
+      selectedChat: null,
+      message: null,
+    }
+  },
+  setup() {
+    // Get toast interface
+    const toast = useToast();
+
+    // Make it available inside methods
+    return {toast}
+  },
+  created: function () {
+    this.isSideMenuOpen = !custom.detectMobileDevice();
+    this.isMobileDevice = custom.detectMobileDevice();
+
+    this.currentUser = this.$store.getters["currentUser"];
+    this.cannedMessages = this.$store.getters['canned'];
+
+
+  },
+  directives: {
+    clickOutside: {
+      beforeMount(el, binding,) {
+        el.eventSetDrag = function () {
+          el.setAttribute('data-dragging', 'yes');
+        }
+        el.eventClearDrag = function () {
+          el.removeAttribute('data-dragging');
+        }
+        el.eventOnClick = function (event) {
+          var dragging = el.getAttribute('data-dragging');
+          // Check that the click was outside the el and its children, and wasn't a drag
+          if (!(el == event.target || el.contains(event.target)) && !dragging) {
+            // call method provided in attribute value
+            //vnode.context[binding.expression](event);
+            binding.value(event, el);
+          }
+        };
+        document.addEventListener('touchstart', el.eventClearDrag);
+        document.addEventListener('touchmove', el.eventSetDrag);
+        document.addEventListener('click', el.eventOnClick);
+        document.addEventListener('touchend', el.eventOnClick);
+      }, unmounted(el) {
+        document.removeEventListener('touchstart', el.eventClearDrag);
+        document.removeEventListener('touchmove', el.eventSetDrag);
+        document.removeEventListener('click', el.eventOnClick);
+        document.removeEventListener('touchend', el.eventOnClick);
+        el.removeAttribute('data-dragging');
+      },
+    }
+  },
+  mounted() {
+    this.activeChats = this.$store.getters["getActiveChats"];
+    this.departments = this.$store.state.departments;
+    this.teams = this.$store.state.teams;
+
+    this.cronTask();
+  },
+  watch: {
+    PendingChatList(val, oldVal) {
+      if (val.length > oldVal.length) {
+        this.toast.info('درخواست جدید گفتگو', {
+          position: POSITION.BOTTOM_RIGHT
+        });
+        this.playSound();
+      }
+    }
+  },
+  computed: {
+    config() {
+      return this.$store.getters["config"];
+    },
+    now() {
+      return Math.round(new Date().getTime() / 1000);
+    },
+    isSelectedChatActive() {
+      if (!this.selectedChat) {
+        return false;
+      }
+      let obj = this.$store.state.activeChats.find(x => x.chatObjectId === this.selectedChat);
+      let index = this.$store.state.activeChats.indexOf(obj);
+
+      if (this.$store.state.activeChats[index].active) {
+        return true;
+      }
+      return false;
+    }
+  },
+  methods: {
+    logout() {
+      this.$store
+          .dispatch("logout")
+          .then(() => {
+            this.$router.push({name: "Login"});
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+    scrollToEnd() {
+      var messageDisplay = this.$refs.chatContainer;
+      messageDisplay.scrollTop = messageDisplay.scrollHeight;
+    },
+    windowsResized() {
+      this.isMobileDevice = window.innerWidth < 600;
+    },
+    toggleSideMenu() {
+      this.isSideMenuOpen = !this.isSideMenuOpen
+    },
+    changeSideMenuTab(tab) {
+      this.sideMenuSelectedTab = tab;
+    },
+    toggleCannedMenu() {
+      this.isCannedMenuOpen = !this.isCannedMenuOpen
+    },
+    closeCannedMenu() {
+      this.isCannedMenuOpen = false
+    },
+    closeUserMenu() {
+      this.userDropDownMenu = false
+    },
+    toggleTransferMenu() {
+      this.isTransferMenuOpen = !this.isTransferMenuOpen
+    },
+    closeTransferMenu() {
+      this.isTransferMenuOpen = false
+    },
+    toggleTransferSubMenu(type) {
+      if (type === 'team') {
+        this.isTransferDepMenuOpen = false;
+        this.isTransferTeamMenuOpen = !this.isTransferTeamMenuOpen
+      } else if (type === 'dep') {
+        this.isTransferTeamMenuOpen = false;
+        this.isTransferDepMenuOpen = !this.isTransferDepMenuOpen
+      }
+    },
+    updateStatus: function (status) {
+      this.$store.commit('updateCurrentUserStatus', status);
+      this.currentUser = this.$store.getters["currentUser"];
+      this.userDropDownMenu = false;
+    },
+    playSound() {
+      let audio = new Audio(require('@/assets/sound/custom.wav'));
+      audio.play();
+    },
+    transfer(chatObjectId, type, data) {
+      this.$store
+          .dispatch("transfer", {chatObjectId, type, data})
+          .then(() => {
+            this.isTransferMenuOpen = false;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+    reject(chatObjectId, index) {
+      this.$store
+          .dispatch("reject", chatObjectId)
+          .then(() => {
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      this.PendingChatList.splice(index, 1);
+    },
+    accept(chatObjectId, index) {
+      this.$store
+          .dispatch("accept", chatObjectId)
+          .then(() => {
+            this.$store.commit('accept', this.PendingChatList[index]);
+            if (this.currentUser.greeting !== undefined) {
+              // let unsubscribe = null
+              // unsubscribe = this.$store.subscribe(({type}) => {
+              //   if (type === 'parseEvents') {
+              this.$store
+                  .dispatch("sendMessage", {
+                    chatObjectId: chatObjectId,
+                    type: "text",
+                    message: this.currentUser.greeting,
+                  }).catch((error) => {
+                console.log(error);
+              });
+              //     unsubscribe() // it only reacts once.
+              //   }
+              // })
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      //this.PendingChatList.splice(index, 1);
+    },
+    selectChat(chatObjectId) {
+      this.selectedChat = chatObjectId;
+      this.$store.commit('resetNewMessageCount', chatObjectId)
+    },
+    selectAttachment() {
+      this.$refs.attachment.click();
+    },
+    sendMessageHandler(e) {
+      if (!e.shiftKey) {
+        this.sendMessage();
+      } else {
+        this.message = `${this.message}\n`
+      }
+    },
+    sendMessage() {
+      if (this.message !== null) {
+        this.$store
+            .dispatch("sendMessage", {
+              chatObjectId: this.selectedChat,
+              type: "text",
+              message: this.message,
+            })
+            .then(() => {
+              this.message = null;
+              this.scrollToEnd();
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+      }
+    },
+    sendAttachment() {
+      let file = this.$refs.attachment.files[0];
+      const allowedExtension = ['image/gif', 'image/jpg', 'image/jpeg', 'image/png'];
+      if (!allowedExtension.includes(file.type)) {
+        this.toast.error('نوع فایل مجاز نیست.', {
+          position: POSITION.BOTTOM_RIGHT
+        });
+        return;
+      }
+
+      if (file.size > this.config.variables.max_upload_size) {
+        this.toast.error('سایز فایل مجاز نیست.', {
+          position: POSITION.BOTTOM_RIGHT
+        });
+        return;
+      }
+
+      let data = new FormData();
+      data.append('name', 'imagecontainer');
+      data.append('file', file);
+
+      this.$store
+          .dispatch("sendAttachment", {
+            chatObjectId: this.selectedChat,
+            type: 'image',
+            attachment: file,
+            message: file.name,
+          })
+          .then(() => {
+            this.scrollToEnd();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+    sendCanned(canned) {
+      if (canned.message) {
+        this.$store
+            .dispatch("sendMessage", {
+              chatObjectId: this.selectedChat,
+              type: "text",
+              message: canned.message,
+            })
+            .then(() => {
+              this.message = null;
+              this.scrollToEnd();
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+      }
+      if (canned.url) {
+        this.$store
+            .dispatch("sendMessage", {
+              chatObjectId: this.selectedChat,
+              type: "url",
+              message: canned.url,
+            })
+            .then(() => {
+              this.message = null;
+              this.scrollToEnd();
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+      }
+      this.isCannedMenuOpen = false;
+    },
+    endChat() {
+      if (this.selectedChat) {
+
+        let obj = this.$store.state.activeChats.find(x => x.chatObjectId === this.selectedChat);
+        let index = this.$store.state.activeChats.indexOf(obj);
+
+        if (this.$store.state.activeChats[index].active) {
+          this.$store
+              .dispatch("leave", this.selectedChat)
+              .then(() => {
+
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+
+        }
+        this.selectedChat = null;
+        this.$store.state.activeChats.splice(index, 1);
+      }
+    },
+    cronTask() {
+      this.cron = setInterval(() => {
+        this.$store
+            .dispatch("fetchVisitors")
+            .then(() => {
+              //this.queueList = this.$store.getters["getQueue"];
+              this.staffList = this.$store.getters["getStaffList"];
+              //console.log(this.staffList)
+              this.PendingChatList = this.$store.getters["getPendingChats"];
+              this.activeChats = this.$store.getters["getActiveChats"];
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        if (this.activeChats.length > 0) {
+          this.$store.dispatch("sendConfirmations")
+              .then(() => {
+                //this.activeChats = this.$store.getters["getActiveChats"];
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+        }
+      }, this.cronInterval);
+    },
+  },
+  beforeUnmount() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.windowsResized, {passive: true})
+    }
+    clearInterval(this.cron)
+  }
+};
+</script>
+<style>
+.status-1 {
+  @apply absolute top-0 right-0 h-3 w-3 border-2 border-white rounded-full bg-green-400;
+}
+
+.status-2 {
+  @apply absolute top-0 right-0 h-3 w-3 border-2 border-white rounded-full bg-gray-400;
+}
+
+.status-5 {
+  @apply absolute top-0 right-0 h-3 w-3 border-2 border-white rounded-full bg-red-400;
+}
+
+.status-7 {
+  @apply absolute top-0 right-0 h-3 w-3 border-2 border-white rounded-full bg-gray-400;
+}
+
+.chat-tab-active {
+  @apply bg-white border-b-2 border-green-550;
+}
+
+.side-tab {
+  @apply text-gray-600 py-4 px-4 text-sm
+}
+
+.side-tab-active {
+  @apply text-gray-800 border-b-2 font-medium border-gray-800
+}
+
+</style>
