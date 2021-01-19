@@ -5,6 +5,7 @@ import custom from "../custom";
 import router from "../router/index";
 
 axios.defaults.baseURL = "http://kayakosnap.ltd/winapp/index.php?";
+//axios.defaults.baseURL = window.location.origin + "/winapp/index.php?";
 
 export default createStore({
     state: {
@@ -284,31 +285,56 @@ export default createStore({
             state.activeChats = [];
         },
         updateStaffList(state, staffList) {
-            var finalList = [];
-
             if (Array.isArray(staffList.staffgroup)) {
                 for (let staffgroup of staffList.staffgroup) {
-                    finalList.push({
-                        isAdmin: staffgroup._attributes.isadmin,
-                        staffGroupId: staffgroup._attributes.staffgroupid,
-                        title: staffgroup._attributes.title,
-                        staff: custom.parseStaffsFromGroup(staffgroup),
-                    });
+                    let staffObj = state.staffList.find(x => x.staffGroupId === staffgroup._attributes.staffgroupid);
+                    let staffIndex = state.staffList.indexOf(staffObj);
+                    if (staffIndex > -1) {
+                        state.staffList[staffIndex].isAdmin = staffgroup._attributes.isadmin
+                        state.staffList[staffIndex].title = staffgroup._attributes.title
+                        state.staffList[staffIndex].staff = custom.parseStaffsFromGroup(staffgroup)
+                    } else {
+                        state.staffList.push({
+                            isAdmin: staffgroup._attributes.isadmin,
+                            staffGroupId: staffgroup._attributes.staffgroupid,
+                            title: staffgroup._attributes.title,
+                            display: true,
+                            staff: custom.parseStaffsFromGroup(staffgroup),
+                        });
+                    }
                 }
             } else {
-                finalList.push({
-                    isAdmin: staffList.staffgroup._attributes.isadmin,
-                    staffGroupId: staffList.staffgroup._attributes.staffgroupid,
-                    title: staffList.staffgroup._attributes.title,
-                    staff: custom.parseStaffsFromGroup(staffList.staffgroup),
-                });
+                let staffObj = state.staffList.find(x => x.staffGroupId === staffList.staffgroup._attributes.staffgroupid);
+                let staffIndex = state.staffList.indexOf(staffObj);
+                if (staffIndex > -1) {
+                    state.staffList[staffIndex].isAdmin = staffList.staffgroup._attributes.isadmin
+                    state.staffList[staffIndex].title = staffList.staffgroup._attributes.title
+                    state.staffList[staffIndex].staff = custom.parseStaffsFromGroup(staffList.staffgroup)
+                } else {
+                    state.staffList.push({
+                        isAdmin: staffList.staffgroup._attributes.isadmin,
+                        staffGroupId: staffList.staffgroup._attributes.staffgroupid,
+                        title: staffList.staffgroup._attributes.title,
+                        display: true,
+                        staff: custom.parseStaffsFromGroup(staffList.staffgroup),
+                    });
+                }
             }
-
-            state.staffList = finalList;
         },
         accept(state, obj) {
             let activeChatObj = state.activeChats.find(x => x.chatObjectId === obj.chatObjectId);
             let activeChatIndex = state.activeChats.indexOf(activeChatObj);
+
+            let InitMessage = {
+                chatObjectId: obj.chatObjectId,
+                userId: obj.userId,
+                from: 'user',
+                fullName: obj.userFullName,
+                type: 'text',
+                base64: 1,
+                timestamp: Math.round(new Date().getTime() / 1000),
+                content: obj.subject,
+            }
 
             if (activeChatIndex === -1) {
                 state.activeChats.push({
@@ -321,7 +347,7 @@ export default createStore({
                     transferStatus: obj.transferStatus,
                     transferFromId: obj.transferFromId,
                     transferToId: obj.transferToId,
-                    messages: [],
+                    messages: [InitMessage],
                     warning: null,
                     confirmations: [],
                     newMessagesCount: 0,
@@ -344,6 +370,7 @@ export default createStore({
                         chatObjectId: item.chatobjectid._cdata,
                         userFullName: item.userfullname._cdata,
                         userEmail: item.useremail._cdata,
+                        userId: item.userid._cdata,
                         subject: item.subject._cdata,
                         departmentTitle: item.departmenttitle._cdata,
                         chatSessionId: item.chatsessionid._cdata,
@@ -357,6 +384,7 @@ export default createStore({
                     chatObjectId: pendingChats.chat.chatobjectid._cdata,
                     userFullName: pendingChats.chat.userfullname._cdata,
                     userEmail: pendingChats.chat.useremail._cdata,
+                    userId: pendingChats.chat.userid._cdata,
                     subject: pendingChats.chat.subject._cdata,
                     departmentTitle: pendingChats.chat.departmenttitle._cdata,
                     chatSessionId: pendingChats.chat.chatsessionid._cdata,
@@ -609,7 +637,7 @@ export default createStore({
                             message: chat.warning._attributes.message,
                         };
 
-                        state.activeChats[activeChatIndex].active = false;
+                        //state.activeChats[activeChatIndex].active = true;
 
                         guids.push(chat.warning._attributes.guid)
                     }
@@ -1043,12 +1071,12 @@ export default createStore({
          * @author Mojtaba Sayari
          *
          */
-        accept(context, chatObjectId) {
+        accept(context, param) {
             var xmldata = {
                 events: {
                     chat: {
                         _attributes: {
-                            chatobjectid: chatObjectId,
+                            chatobjectid: param.chatObjectId,
                         },
                         chataction: {
                             _attributes: {
@@ -1062,7 +1090,7 @@ export default createStore({
             };
 
             // append confirmations
-            let confirmations = context.getters.getConfirmationsToSendByChatObjectId(chatObjectId);
+            let confirmations = context.getters.getConfirmationsToSendByChatObjectId(param.selectedChat);
             if (confirmations.length !== 0) {
                 for (let c of confirmations) {
                     xmldata.events.confirmation.push(c);
@@ -1072,7 +1100,7 @@ export default createStore({
             var requestData = {
                 sessionid: context.state.config.sessionId,
                 status: context.state.currentUser.status,
-                chatobjectidlist: chatObjectId,
+                chatobjectidlist: param.chatObjectId,
                 randno: custom.generateChatRandomNumber(),
                 xml: xmldata,
             };
@@ -1218,6 +1246,16 @@ export default createStore({
             if (confirmations.length !== 0) {
                 for (let c of confirmations) {
                     xmldata.events.confirmation.push(c);
+                }
+            }
+
+            // append selected chat confirmations
+            if (params.selectedChat !== 'undefined') {
+                confirmations = context.getters.getConfirmationsToSendByChatObjectId(params.selectedChat);
+                if (confirmations.length !== 0) {
+                    for (let c of confirmations) {
+                        xmldata.events.confirmation.push(c);
+                    }
                 }
             }
 

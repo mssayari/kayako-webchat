@@ -1,13 +1,15 @@
 <template>
-  <div class="clearfix" v-for="(msg,index) in chat.messages" v-bind:key="index">
-    <div class="w-2/4 mx-4 my-2 p-2 rounded-lg rtl shadow-sm border-white"
+  <div class="flex" :class="{'flex-row-reverse':msg.from==='staff' && msg.userId ===null}"
+       v-for="(msg,index) in chat.messages" v-bind:key="index">
+    <div class="min-w-1/4 mx-4 my-2 p-2 rounded-lg rtl shadow-sm border-white"
          :class="{'user-msg':msg.from==='user',
          'staff-msg':msg.from==='staff' && msg.userId ===null,
          'co-staff-msg':msg.from==='staff' && msg.userId !==null}">
       <p v-if="msg.type === 'text' || msg.type === 'leave' || msg.type === 'enter' " v-html="nl2br(msg.content)"></p>
-      <img v-if="msg.type==='image'" :src="msg.content" class=" mx-auto rounded">
-      <span class="ltr float-left mt-2 text-gray-500">{{ timeFormat(msg.timestamp) }}</span>
-      <span class="ltr float-right mt-2 text-gray-500">{{ msg.fullName }}</span>
+      <a v-if="msg.type==='image'" :href="msg.content" target="_blank"><img :src="msg.content"
+                                                                            class=" mx-auto rounded w-96"></a>
+      <span class="ltr float-left mt-2 text-gray-500 dark:text-gray-400">{{ timeFormat(msg.timestamp) }}</span>
+      <span class="ltr float-right mt-2 text-gray-500 dark:text-gray-400">{{ msg.fullName }}</span>
     </div>
   </div>
   <div v-if="chat.warning" class="clearfix items-center justify-center flex w-full">
@@ -24,6 +26,7 @@ export default {
   props: {
     chatObjectId: String,
   },
+  emits: ['loaded'],
   data() {
     return {}
   },
@@ -31,6 +34,12 @@ export default {
     chat() {
       return this.$store.getters.getSelectedChatObject(this.chatObjectId);
     }
+  },
+  mounted() {
+
+  },
+  updated() {
+    this.$emit('loaded', true)
   },
   methods: {
     timeFormat(timestapm) {
@@ -45,7 +54,7 @@ export default {
       }
       return dtFormat.format(new Date(timestapm * 1e3));
     },
-    nl2br (str, is_xhtml) {
+    nl2br(str, is_xhtml) {
       // http://kevin.vanzonneveld.net
       // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
       // +   improved by: Philip Peterson
@@ -72,15 +81,15 @@ export default {
 
 <style scoped>
 .user-msg {
-  @apply bg-gray-200 float-left;
+  @apply bg-gray-200 dark:bg-gray-700 dark:text-gray-300;
 }
 
 .staff-msg {
-  @apply bg-green-550 float-right;
+  @apply bg-green-550 dark:bg-green-900 dark:text-gray-300 ;
 }
 
 .co-staff-msg {
-  @apply bg-yellow-400 float-left;
+  @apply bg-yellow-400;
 }
 
 .warning-msg {

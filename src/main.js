@@ -6,6 +6,7 @@ import "./assets/tailwind.css";
 
 import Toast from "vue-toastification";
 import "./assets/styles/toast.scss";
+import globalMixin from "@/globalMixin";
 
 const options = {
     timeout: 5000,
@@ -29,6 +30,7 @@ const options = {
 // });
 
 createApp(App)
+    .mixin(globalMixin)
     .use(store)
     .use(router)
     .use(Toast, options)

@@ -1,30 +1,17 @@
 <template>
   <li>
     <div @click="isFolder? toggle() : clickHandler(item)"
-         class="flex justify-between flex-row-reverse py-2 px-1 hover:text-gray-800"
-         :class="{'font-medium': isFolder,' cursor-pointer': !isFolder,'text-gray-800':isFolder && isOpen}">
-      <svg v-if="indent" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-           class="feather feather-corner-down-left w-3 h-3">
-        <polyline points="9 10 4 15 9 20"></polyline>
-        <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+         class="flex justify-between flex-row-reverse py-2 px-1 hover:text-green-500"
+         :class="{'font-medium': isFolder,' cursor-pointer': !isFolder,'text-green-500':isFolder && isOpen}">
+      <svg class="feature-icon w-3 h-3">
+        <use v-if="indent" xlink:href="fonts/feather-sprite.svg#corner-down-left"/>
       </svg>
+
       {{ item.title }}
-      <svg v-if="isFolder && !isOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-           class="w-5 h-5">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-      <svg v-if="isFolder && isOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-           class="feather feather-chevron-up w-5 h-5">
-        <polyline points="18 15 12 9 6 15"></polyline>
-      </svg>
-      <svg v-if="!isFolder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-           stroke="#43be80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-           class="feather feather-chevrons-left w-5 h-5">
-        <polyline points="11 17 6 12 11 7"></polyline>
-        <polyline points="18 17 13 12 18 7"></polyline>
+      <svg class="feature-icon w-5 h-5">
+        <use v-if="isFolder && !isOpen" xlink:href="fonts/feather-sprite.svg#chevron-down"/>
+        <use v-if="isFolder && isOpen" xlink:href="fonts/feather-sprite.svg#chevron-up"/>
+        <use v-if="!isFolder" xlink:href="fonts/feather-sprite.svg#chevrons-left"/>
       </svg>
     </div>
     <ul v-show="isOpen" v-if="isFolder" class="pr-1">
