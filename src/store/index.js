@@ -4,8 +4,8 @@ import axios from 'axios'
 import custom from "../custom";
 import router from "../router/index";
 
-axios.defaults.baseURL = "http://kayakosnap.ltd/winapp/index.php?";
-//axios.defaults.baseURL = window.location.origin + "/winapp/index.php?";
+//axios.defaults.baseURL = "http://kayakosnap.ltd/winapp/index.php?";
+axios.defaults.baseURL = window.location.origin + "/winapp/index.php?";
 
 export default createStore({
     state: {
@@ -280,7 +280,7 @@ export default createStore({
         },
         logout(state) {
             state.config = null;
-            state.staffList = null;
+            state.staffList = [];
             state.canned = null;
             state.activeChats = [];
         },
@@ -322,6 +322,9 @@ export default createStore({
             }
         },
         accept(state, obj) {
+            if (obj === 'undefined') {
+                return;
+            }
             let activeChatObj = state.activeChats.find(x => x.chatObjectId === obj.chatObjectId);
             let activeChatIndex = state.activeChats.indexOf(activeChatObj);
 
@@ -348,6 +351,7 @@ export default createStore({
                     transferFromId: obj.transferFromId,
                     transferToId: obj.transferToId,
                     messages: [InitMessage],
+                    message: null,
                     warning: null,
                     confirmations: [],
                     newMessagesCount: 0,
@@ -407,7 +411,6 @@ export default createStore({
         status : {1:in chat,0: waiting (new request)}
          */
         updateQueue(state, queue) {
-            //console.log(queue);
             var queuelist = [];
 
             if (queue.chat) {
@@ -562,7 +565,6 @@ export default createStore({
          */
         parseEvents(state, events) {
             //var guids = [];
-            //console.log(events);
 
             if (Array.isArray(events.chat)) {
                 for (let chat of events.chat) {
@@ -619,7 +621,6 @@ export default createStore({
                         if (typeof chat.roster !== 'undefined') {
                             //is have multiple message ?
                             if (Array.isArray(chat.roster)) {
-                                //console.log(events.chat.roster);
 
                                 for (let roster of chat.roster) {
                                     guids.push(roster._attributes.guid)
@@ -760,7 +761,6 @@ export default createStore({
                     if (typeof events.chat !== 'undefined' && typeof events.chat.roster !== 'undefined') {
                         //is have multiple message ?
                         if (Array.isArray(events.chat.roster)) {
-                            //console.log(events.chat.roster);
 
                             for (let roster of events.chat.roster) {
                                 guids.push(roster._attributes.guid)
@@ -983,7 +983,6 @@ export default createStore({
                         .post("/LiveChat/FetchVisitors", custom.createRequest(requestData), {withCredentials: true})
                         .then((response) => {
                             var result = custom.parseResponse(response);
-                            //console.log(result)
                             if (result.kayako_livechat.status && result.kayako_livechat.status._cdata === "-1") {
                                 localStorage.removeItem("config");
                                 context.commit("logout");
@@ -1071,12 +1070,13 @@ export default createStore({
          * @author Mojtaba Sayari
          *
          */
-        accept(context, param) {
+        accept(context, chatObjectId) {
+            let chatobjectidlist = [];
             var xmldata = {
                 events: {
                     chat: {
                         _attributes: {
-                            chatobjectid: param.chatObjectId,
+                            chatobjectid: chatObjectId,
                         },
                         chataction: {
                             _attributes: {
@@ -1089,18 +1089,23 @@ export default createStore({
                 },
             };
 
+            chatobjectidlist.push(chatObjectId);
+
             // append confirmations
-            let confirmations = context.getters.getConfirmationsToSendByChatObjectId(param.selectedChat);
-            if (confirmations.length !== 0) {
-                for (let c of confirmations) {
-                    xmldata.events.confirmation.push(c);
+            for (let item of context.state.activeChats) {
+                let confirmations = context.getters.getConfirmationsToSendByChatObjectId(item.chatObjectId);
+                if (confirmations.length !== 0) {
+                    for (let c of confirmations) {
+                        xmldata.events.confirmation.push(c);
+                    }
+                    chatobjectidlist.push(item.chatObjectId);
                 }
             }
 
             var requestData = {
                 sessionid: context.state.config.sessionId,
                 status: context.state.currentUser.status,
-                chatobjectidlist: param.chatObjectId,
+                chatobjectidlist: chatobjectidlist.join(','),
                 randno: custom.generateChatRandomNumber(),
                 xml: xmldata,
             };
@@ -1122,6 +1127,7 @@ export default createStore({
         ,
 
         reject(context, chatObjectId) {
+            let chatobjectidlist = [];
             var xmldata = {
                 events: {
                     chat: {
@@ -1135,12 +1141,27 @@ export default createStore({
                             },
                         },
                     },
+                    confirmation: [],
                 },
             };
+
+            chatobjectidlist.push(chatObjectId);
+
+            // append confirmations
+            for (let item of context.state.activeChats) {
+                let confirmations = context.getters.getConfirmationsToSendByChatObjectId(item.chatObjectId);
+                if (confirmations.length !== 0) {
+                    for (let c of confirmations) {
+                        xmldata.events.confirmation.push(c);
+                    }
+                    chatobjectidlist.push(item.chatObjectId);
+                }
+            }
+
             var requestData = {
                 sessionid: context.state.config.sessionId,
                 status: context.state.currentUser.status,
-                chatobjectidlist: chatObjectId,
+                chatobjectidlist: chatobjectidlist.join(','),
                 randno: custom.generateChatRandomNumber(),
                 xml: xmldata,
             };
@@ -1220,6 +1241,7 @@ export default createStore({
          * @returns {Promise<unknown>}
          */
         sendMessage(context, params) {
+            let chatobjectidlist = [];
             var xmldata = {
                 events: {
                     chat: {
@@ -1241,28 +1263,23 @@ export default createStore({
                 },
             };
 
-            // append confirmations
-            let confirmations = context.getters.getConfirmationsToSendByChatObjectId(params.chatObjectId);
-            if (confirmations.length !== 0) {
-                for (let c of confirmations) {
-                    xmldata.events.confirmation.push(c);
-                }
-            }
+            chatobjectidlist.push(params.chatObjectId);
 
-            // append selected chat confirmations
-            if (params.selectedChat !== 'undefined') {
-                confirmations = context.getters.getConfirmationsToSendByChatObjectId(params.selectedChat);
+            // append confirmations
+            for (let item of context.state.activeChats) {
+                let confirmations = context.getters.getConfirmationsToSendByChatObjectId(item.chatObjectId);
                 if (confirmations.length !== 0) {
                     for (let c of confirmations) {
                         xmldata.events.confirmation.push(c);
                     }
+                    chatobjectidlist.push(item.chatObjectId);
                 }
             }
 
             var requestData = {
                 sessionid: context.state.config.sessionId,
                 status: context.state.currentUser.status,
-                chatobjectidlist: params.chatObjectId,
+                chatobjectidlist: chatobjectidlist.join(','),
                 randno: custom.generateChatRandomNumber(),
                 xml: xmldata,
             };

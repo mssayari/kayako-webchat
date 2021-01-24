@@ -286,6 +286,7 @@
                   </div>
                 </div>
               </div>
+              <div class="text-sm px-1 py-1 text-right dark:text-gray-300 pr-10">{{ user.departmentTitle }}</div>
               <div class="text-sm px-1 py-1 text-right text-gray-500 dark:text-gray-400 pr-10">{{ user.subject }}</div>
               <div class="flex flex-row-reverse actions px-1 justify-center">
                 <button type="button" @click="accept(user.chatObjectId,index,)" :disabled="processing"
@@ -601,10 +602,9 @@ export default {
       this.PendingChatList.splice(index, 1);
     },
     accept(chatObjectId, index) {
-      let selectedChat = this.selectedChat
       this.processing = true
       this.$store
-          .dispatch("accept", {chatObjectId, selectedChat})
+          .dispatch("accept", chatObjectId)
           .then(() => {
             this.$store.commit('accept', this.PendingChatList[index]);
             if (this.currentUser.greeting !== undefined) {
@@ -615,8 +615,7 @@ export default {
                   .dispatch("sendMessage", {
                     chatObjectId: chatObjectId,
                     type: "text",
-                    message: this.currentUser.greeting,
-                    selectedChat: selectedChat
+                    message: this.currentUser.greeting
                   }).catch((error) => {
                 console.log(error);
               });
@@ -631,12 +630,20 @@ export default {
             console.log(error);
           });
       //this.PendingChatList.splice(index, 1);
-      /**
-       * @todo disable button to prevent duplicate greeting message.
-       */
     },
     selectChat(chatObjectId) {
-      this.selectedChat = chatObjectId;
+      //save message
+
+      if (this.selectedChat) {
+        let activeChatObject = this.$store.state.activeChats.find(x => x.chatObjectId === this.selectedChat);
+        //let activeChatIndex = context.state.activeChats.indexOf(activeChatObject);
+        activeChatObject.message = this.message;
+      }
+
+      this.selectedChat = chatObjectId
+      let selectedChatObject = this.$store.state.activeChats.find(x => x.chatObjectId === chatObjectId);
+      this.message = selectedChatObject.message
+
       this.$store.commit('resetNewMessageCount', chatObjectId)
     },
     selectAttachment() {
