@@ -1,20 +1,23 @@
 <template>
-  <div class="flex" :class="{'flex-row-reverse':msg.from==='staff' && msg.userId ===null}"
+  <div class="flex"
+       :class="{'flex-row-reverse':msg.from==='staff' && msg.userId ===null,'clearfix items-center justify-center w-full':msg.from==='system'}"
        v-for="(msg,index) in chat.messages" v-bind:key="index">
     <div class="min-w-1/4 mx-4 my-2 p-2 rounded-lg rtl shadow-sm border-white"
-         :class="{'user-msg':msg.from==='user',
+         :class="{'user-msg':msg.from==='user','warning-msg':msg.from==='system',
          'staff-msg':msg.from==='staff' && msg.userId ===null,
          'co-staff-msg':msg.from==='staff' && msg.userId !==null}">
-      <p v-if="msg.type === 'text' || msg.type === 'leave' || msg.type === 'enter' " v-html="nl2br(msg.content)"></p>
+      <p v-if="msg.type === 'text' || msg.type === 'leave' || msg.type === 'enter' || msg.type === 'noresponse' "
+         v-html="nl2br(msg.content)"></p>
       <a v-if="msg.type==='image'" :href="msg.content" target="_blank"><img :src="msg.content"
                                                                             class=" mx-auto rounded w-96"></a>
-      <span class="ltr float-left mt-2 text-gray-500 dark:text-gray-400">{{ timeFormat(msg.timestamp) }}</span>
-      <span class="ltr float-right mt-2 text-gray-500 dark:text-gray-400">{{ msg.fullName }}</span>
-    </div>
-  </div>
-  <div v-if="chat.warning" class="clearfix items-center justify-center flex w-full">
-    <div class="w-3/4  mx-4 my-2 p-2 rounded-lg rtl shadow-sm border-white warning-msg">
-      {{ chat.warning.message }}
+      <span class="ltr float-left mt-2"
+            :class="msg.type === 'noresponse' ? 'text-gray-700':'text-gray-500 dark:text-gray-400'">
+        {{ timeFormat(msg.timestamp) }}
+      </span>
+      <span class="ltr float-right mt-2"
+            :class="msg.type === 'noresponse' ? 'text-gray-700':'text-gray-500 dark:text-gray-400'">
+        {{ msg.fullName }}
+      </span>
     </div>
   </div>
 </template>
@@ -24,19 +27,14 @@ export default {
   name: "Messages",
 
   props: {
-    chatObjectId: String,
+    chat: Object,
   },
   emits: ['loaded'],
   data() {
     return {}
   },
-  computed: {
-    chat() {
-      return this.$store.getters.getSelectedChatObject(this.chatObjectId);
-    }
-  },
-  mounted() {
 
+  mounted() {
   },
   updated() {
     this.$emit('loaded', true)
@@ -89,10 +87,10 @@ export default {
 }
 
 .co-staff-msg {
-  @apply bg-yellow-400;
+  @apply bg-yellow-400 dark:bg-indigo-600 dark:text-gray-300;
 }
 
 .warning-msg {
-  @apply bg-red-400 float-left;
+  @apply bg-red-400 float-left dark:bg-red-500 dark:text-gray-300;
 }
 </style>

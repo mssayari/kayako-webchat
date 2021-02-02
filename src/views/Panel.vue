@@ -25,7 +25,7 @@
               </div>
             </div>
           </div>
-          <div class="">
+          <div class="flex items-center">
             <div class="mr-4 flex items-center md:mr-6">
 
               <!-- Profile dropdown -->
@@ -83,13 +83,28 @@
                      @click="openSettingsModal"
                      role="menuitem">
                     <span>تنظیمات</span>
+                    <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
+                      <use xlink:href="fonts/feather-sprite.svg#settings"/>
+                    </svg>
                   </a>
-                  <a @click="logout" class="block px-4 py-2 text-sm  hover:bg-gray-100
+                  <a @click="logout" class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm  hover:bg-gray-100
                   dark:hover:text-gray-200 dark:hover:bg-gray-800 cursor-pointer"
-                     role="menuitem">خروج</a>
+                     role="menuitem">
+                    <span>خروج</span>
+                    <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
+                      <use xlink:href="fonts/feather-sprite.svg#power"/>
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>
+            <button v-if="!notification" @click="requestNotificationPermission"
+                    class="flex justify-center px-3 py-2 border border-transparent text-base font-medium rounded-md text-purple-600 bg-white hover:bg-purple-50">
+              <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
+                <use xlink:href="fonts/feather-sprite.svg#bell"/>
+              </svg>
+              <span class="text-sm">فعال سازی اعلان ها</span>
+            </button>
           </div>
         </div>
       </div>
@@ -112,11 +127,10 @@
               <span class="flex h-3 w-3 relative mr-2">
                 <span v-if="item.newMessagesCount > 0"
                       class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-100"
-                      :class="{'bg-green-550':item.active,'bg-gray-500':!item.active}"></span>
-                <span v-if="!item.warning" class="relative inline-flex rounded-full h-3 w-3"
-                      :class="{'bg-green-400':item.active,'bg-gray-500':!item.active}"></span>
+                      :class="{'bg-green-550':item.active && !item.warning,'bg-gray-500':!item.active && !item.warning,'bg-red-400':item.warning}"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3"
+                      :class="{'bg-green-400':item.active && !item.warning,'bg-gray-500':!item.active && !item.warning,'bg-red-400':item.warning}"></span>
               </span>
-              <span v-if="item.warning" class="mr-2 h-3 w-3 border-2 border-white rounded-full bg-red-400"></span>
             </a>
           </li>
         </ul>
@@ -224,14 +238,15 @@
           </div>
 
           <div v-if="selectedChat">
-            <messages :chat-object-id="selectedChat" @loaded="scrollToEnd"></messages>
+            <messages :chat="SelectedChatObject" @loaded="scrollToEnd"></messages>
           </div>
         </div>
         <footer class="h-1/6 bg-white dark:bg-gray-900">
           <div class="flex justify-center h-full">
             <div class="relative w-full py-1">
               <div class="absolute inset-y-0 flex items-center pl-2">
-                <button type="button" :disabled="!isSelectedChatActive" @click="selectAttachment()">
+                <button type="button" class="focus:outline-none" :disabled="!isSelectedChatActive"
+                        @click="selectAttachment()">
                   <svg class="mx-auto h-10 w-10 text-gray-400" stroke="#43be80" fill="none" viewBox="0 0 48 48"
                        aria-hidden="true">
                     <path
@@ -379,6 +394,18 @@
             </button>
           </div>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-500 dark:text-gray-400 mt-2">
+          <div>پخش صدا هنگام دریافت پیغام</div>
+          <div>
+            <button class="w-10 h-6 bg-gray-300 rounded-full flex-shrink-0 p-1 duration-300 ease-in-out
+                           focus:outline-none"
+                    @click="toggleMessageSound()"
+                    :class="{ 'bg-green-550': messageSoundActive}">
+              <div class="bg-white w-4 h-4 rounded-full shadow-md duration-300 ease-in-out transform"
+                   :class="{ '-translate-x-4': messageSoundActive}"></div>
+            </button>
+          </div>
+        </div>
       </template>
 
       <template #footer>
@@ -430,6 +457,8 @@ export default {
       activeChats: [],
       selectedChat: null,
       message: null,
+      notification: false,
+      messageSoundActive: false,
     }
   },
   setup() {
@@ -445,8 +474,6 @@ export default {
 
     this.currentUser = this.$store.getters["currentUser"];
     this.cannedMessages = this.$store.getters['canned'];
-
-
   },
   directives: {
     clickOutside: {
@@ -484,6 +511,12 @@ export default {
     this.departments = this.$store.state.departments;
     this.teams = this.$store.state.teams;
 
+    if (Notification.permission === 'denied' || Notification.permission === 'default') {
+      this.notification = false
+    } else {
+      this.notification = true
+    }
+
     this.cronTask();
   },
   watch: {
@@ -492,6 +525,7 @@ export default {
         this.toast.info('درخواست جدید گفتگو', {
           position: POSITION.BOTTOM_RIGHT
         });
+        this.createNotification();
         this.playSound();
         this.sideMenuSelectedTab = 'chats';
       }
@@ -504,6 +538,9 @@ export default {
     now() {
       return Math.round(new Date().getTime() / 1000);
     },
+    SelectedChatObject() {
+      return this.$store.getters.getSelectedChatObject(this.selectedChat);
+    },
     isSelectedChatActive() {
       if (!this.selectedChat) {
         return false;
@@ -515,9 +552,44 @@ export default {
         return true;
       }
       return false;
-    }
+    },
   },
   methods: {
+    requestNotificationPermission() {
+      // Let's check if the browser supports notifications
+      if (!("Notification" in window)) {
+        alert("This browser does not support desktop notification");
+      }
+
+      // Let's check whether notification permissions have already been granted
+      else if (Notification.permission === "granted") {
+        // If it's okay let's create a notification
+        new Notification("Hi there!");
+      }
+
+      // Otherwise, we need to ask the user for permission
+      else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then((permission) => {
+          // If the user accepts, let's create a notification
+          if (permission === "granted") {
+            new Notification("اعلان ها فعال شد");
+            this.notification = true
+          }
+        });
+      }
+    },
+    createNotification() {
+      // Create and show the notification
+      let img = 'img/notification.png';
+      //let text = 'از طرف ' + name + ' با شماره ' + mobile + ' از دپارتمان ' + department;
+      let text = 'شما درخواست گفتگوی جدیدی دارید'
+
+      new Notification('درخواست گفتگو', {
+        body: text,
+        icon: img,
+        dir: 'rtl',
+      });
+    },
     logout() {
       this.$store
           .dispatch("logout")
@@ -581,6 +653,10 @@ export default {
       let audio = new Audio(require('@/assets/sound/tone1.mp3'));
       audio.play();
     },
+    playMessageSound() {
+      let audio = new Audio(require('@/assets/sound/message.wav'));
+      audio.play();
+    },
     transfer(chatObjectId, type, data) {
       this.$store
           .dispatch("transfer", {chatObjectId, type, data})
@@ -603,10 +679,11 @@ export default {
     },
     accept(chatObjectId, index) {
       this.processing = true
+      let object = this.PendingChatList[index]
       this.$store
           .dispatch("accept", chatObjectId)
           .then(() => {
-            this.$store.commit('accept', this.PendingChatList[index]);
+            this.$store.commit('accept', object);
             if (this.currentUser.greeting !== undefined) {
               // let unsubscribe = null
               // unsubscribe = this.$store.subscribe(({type}) => {
@@ -675,6 +752,7 @@ export default {
             });
       }
     },
+    // cannot read property type from undefined
     sendAttachment() {
       let file = this.$refs.attachment.files[0];
       const allowedExtension = ['image/gif', 'image/jpg', 'image/jpeg', 'image/png'];
@@ -774,6 +852,7 @@ export default {
               //console.log(this.staffList)
               this.PendingChatList = this.$store.getters["getPendingChats"];
               this.activeChats = this.$store.getters["getActiveChats"];
+              this.detectNewMessage()
             })
             .catch((error) => {
               console.log(error);
@@ -789,6 +868,17 @@ export default {
         }
       }, this.cronInterval);
     },
+    detectNewMessage() {
+      for (const item of this.activeChats) {
+        if (item.playSound) {
+          if (this.messageSoundActive) {
+            this.playMessageSound()
+          }
+          this.$store.commit('turnOffMessageSound', item.chatObjectId)
+          break;
+        }
+      }
+    }
   },
   beforeUnmount() {
     if (typeof window !== 'undefined') {

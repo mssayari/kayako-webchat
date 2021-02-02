@@ -74,7 +74,7 @@ export default {
   watch: {
     show: {
       immediate: true,
-      handler: (show) => {
+      handler: function(show)  {
         if (show) {
           document.body.style.overflow = 'hidden'
         } else {

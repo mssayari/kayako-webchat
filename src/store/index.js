@@ -5,7 +5,13 @@ import custom from "../custom";
 import router from "../router/index";
 
 //axios.defaults.baseURL = "http://kayakosnap.ltd/winapp/index.php?";
-axios.defaults.baseURL = window.location.origin + "/winapp/index.php?";
+//axios.defaults.baseURL = window.location.origin + "/winapp/index.php?";
+
+const devUrl = 'http://kayakosnap.ltd/winapp/index.php?';
+//console.log(window.location.hostname)
+const client = axios.create({
+    baseURL: window.location.hostname !== "localhost" ? window.location.origin + "/winapp/index.php?" : devUrl
+});
 
 export default createStore({
     state: {
@@ -212,6 +218,15 @@ export default createStore({
                 }
             }
         },
+        turnOffMessageSound(state, chatObjectId) {
+            if (state.activeChats.length !== 0) {
+                let messageObj = state.activeChats.find(x => x.chatObjectId === chatObjectId);
+                let messageIndex = state.activeChats.indexOf(messageObj);
+                if (messageIndex > -1) {
+                    state.activeChats[messageIndex].playSound = false;
+                }
+            }
+        },
         updateCurrentUserStatus(state, status) {
             var currentUser = state.currentUser;
             currentUser.status = status;
@@ -322,7 +337,7 @@ export default createStore({
             }
         },
         accept(state, obj) {
-            if (obj === 'undefined') {
+            if (obj === "undefined" || obj === undefined) {
                 return;
             }
             let activeChatObj = state.activeChats.find(x => x.chatObjectId === obj.chatObjectId);
@@ -352,7 +367,7 @@ export default createStore({
                     transferToId: obj.transferToId,
                     messages: [InitMessage],
                     message: null,
-                    warning: null,
+                    warning: false,
                     confirmations: [],
                     newMessagesCount: 0,
                     playSound: false,
@@ -368,6 +383,7 @@ export default createStore({
                 state.pendingChats = [];
                 return;
             }
+
             if (Array.isArray(pendingChats.chat)) {
                 for (let item of pendingChats.chat) {
                     finalList.push({
@@ -566,6 +582,10 @@ export default createStore({
         parseEvents(state, events) {
             //var guids = [];
 
+            if (typeof events === 'undefined') {
+                return;
+            }
+
             if (Array.isArray(events.chat)) {
                 for (let chat of events.chat) {
                     let newmessages = [];
@@ -605,9 +625,13 @@ export default createStore({
 
                         if (activeChatIndex > -1) {
                             state.activeChats[activeChatIndex].newMessagesCount += newmessages.length;
-                            state.activeChats[activeChatIndex].playSound = true;
+                            state.activeChats[activeChatIndex].resetNewMessageCount = true;
+
                             for (let nmsitem of newmessages) {
                                 state.activeChats[activeChatIndex].messages.push(nmsitem)
+                            }
+                            if (newmessages.length){
+                                state.activeChats[activeChatIndex].warning = false;
                             }
                         }
                     }
@@ -633,12 +657,19 @@ export default createStore({
 
                     //catch warnings
                     if (typeof chat.warning !== 'undefined' && activeChatIndex > -1) {
-                        state.activeChats[activeChatIndex].warning = {
-                            type: chat.warning._attributes.type,
-                            message: chat.warning._attributes.message,
-                        };
 
-                        //state.activeChats[activeChatIndex].active = true;
+                        state.activeChats[activeChatIndex].warning = true;
+
+                        state.activeChats[activeChatIndex].messages.push({
+                            chatObjectId: chat._attributes.chatobjectid,
+                            userId: chat._attributes.userid,
+                            from: 'system',
+                            fullName: 'سیستم',
+                            type: chat.warning._attributes.type,
+                            base64: 0,
+                            timestamp: Math.round(new Date().getTime() / 1000),
+                            content: chat.warning._attributes.message,
+                        });
 
                         guids.push(chat.warning._attributes.guid)
                     }
@@ -707,7 +738,7 @@ export default createStore({
 
 
                 //get messages
-                if (typeof events.chat !== 'undefined' && typeof events.chat.message !== 'undefined') {
+                if (typeof events !== 'undefined' && typeof events.chat !== 'undefined' && typeof events.chat.message !== 'undefined') {
                     if (Array.isArray(events.chat.message)) {
                         for (let message of events.chat.message) {
                             newmessages.push({
@@ -746,6 +777,10 @@ export default createStore({
                         for (let nmsitem of newmessages) {
                             state.activeChats[activeChatIndex].messages.push(nmsitem)
                         }
+
+                        if (newmessages.length){
+                            state.activeChats[activeChatIndex].warning = false;
+                        }
                     }
                 }
 
@@ -774,12 +809,18 @@ export default createStore({
                 //catch warnings
                 if (activeChatIndex > -1 && typeof events.chat !== 'undefined' && typeof events.chat.warning !== 'undefined') {
 
-                    state.activeChats[activeChatIndex].warning = {
-                        type: events.chat.warning._attributes.type,
-                        message: events.chat.warning._attributes.message,
-                    };
+                    state.activeChats[activeChatIndex].warning = true;
 
-                    state.activeChats[activeChatIndex].active = false;
+                    state.activeChats[activeChatIndex].messages.push({
+                        chatObjectId: events.chat._attributes.chatobjectid,
+                        userId: events.chat._attributes.userid,
+                        from: 'system',
+                        fullName: 'سیستم',
+                        type: events.chat.warning._attributes.type,
+                        base64: 0,
+                        timestamp: Math.round(new Date().getTime() / 1000),
+                        content: events.chat.warning._attributes.message,
+                    });
 
                     guids.push(events.chat.warning._attributes.guid)
                 }
@@ -840,7 +881,6 @@ export default createStore({
                         }
                     }
                 }
-
             }
 
 
@@ -868,6 +908,7 @@ export default createStore({
                     type: "text",
                     userId: null,
                 })
+                state.activeChats[activeChatIndex].warning = false;
             }
         },
     },
@@ -884,8 +925,7 @@ export default createStore({
          */
         login({commit}, credentials) {
             return new Promise((resolve, reject) => {
-                axios
-                    .post("/Core/Default/Login", custom.createRequest(credentials), {withCredentials: true})
+                client.post("/Core/Default/Login", custom.createRequest(credentials), {withCredentials: true})
                     .then(resp => {
                         var result = custom.parseResponse(resp);
                         if (result.kayako_livechat.status._cdata === "1") {
@@ -924,7 +964,7 @@ export default createStore({
                 };
 
                 return new Promise((resolve, reject) => {
-                    axios
+                    client
                         .post("/Core/Default/Logout", custom.createRequest(requestData), {withCredentials: true})
                         .then((response) => {
                             var result = custom.parseResponse(response);
@@ -979,7 +1019,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 if (context.getters.loggedIn) {
-                    axios
+                    client
                         .post("/LiveChat/FetchVisitors", custom.createRequest(requestData), {withCredentials: true})
                         .then((response) => {
                             var result = custom.parseResponse(response);
@@ -1052,7 +1092,7 @@ export default createStore({
             };
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
                     .then((response) => {
                         let result = custom.parseResponse(response);
@@ -1111,7 +1151,7 @@ export default createStore({
             };
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
                     .then((response) => {
                         let result = custom.parseResponse(response);
@@ -1167,7 +1207,7 @@ export default createStore({
             };
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
                     .then((response) => {
                         let result = custom.parseResponse(response);
@@ -1222,7 +1262,7 @@ export default createStore({
             };
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
                     .then((response) => {
                         let result = custom.parseResponse(response);
@@ -1285,7 +1325,7 @@ export default createStore({
             };
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/events", custom.createRequest(requestData),
                         {
                             withCredentials: true,
@@ -1319,7 +1359,7 @@ export default createStore({
             // }
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/Chat/UploadWeb", formData,
                         {
                             //withCredentials: true,
@@ -1406,7 +1446,7 @@ export default createStore({
 
 
                 return new Promise((resolve, reject) => {
-                    axios
+                    client
                         .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
                         .then((response) => {
                             let result = custom.parseResponse(response);
@@ -1455,7 +1495,7 @@ export default createStore({
             };
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
                     .then((response) => {
                         let result = custom.parseResponse(response);
@@ -1521,7 +1561,7 @@ export default createStore({
             };
 
             return new Promise((resolve, reject) => {
-                axios
+                client
                     .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
                     .then((response) => {
                         let result = custom.parseResponse(response);

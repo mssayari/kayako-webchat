@@ -6,6 +6,9 @@ export default {
     },
     created() {
         this.darkMode()
+
+        //load app config
+        this.getMessageSoundConfig()
     },
     methods: {
         darkMode() {
@@ -33,6 +36,15 @@ export default {
                 localStorage.theme = 'dark'
                 document.querySelector('html').classList.add('dark')
             }
+        },
+        getMessageSoundConfig() {
+            if (('message_sound' in localStorage) && localStorage.message_sound === 'true') {
+                this.messageSoundActive = true
+            }
+        },
+        toggleMessageSound() {
+            this.messageSoundActive = !this.messageSoundActive;
+            localStorage.message_sound = this.messageSoundActive
         },
     }
 };
