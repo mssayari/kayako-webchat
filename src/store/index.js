@@ -3,15 +3,32 @@ import {createStore} from "vuex";
 import axios from 'axios'
 import custom from "../custom";
 import router from "../router/index";
+import * as rax from 'retry-axios';
 
-//axios.defaults.baseURL = "http://kayakosnap.ltd/winapp/index.php?";
-//axios.defaults.baseURL = window.location.origin + "/winapp/index.php?";
 
 const devUrl = 'http://kayakosnap.ltd/winapp/index.php?';
-//console.log(window.location.hostname)
+
 const client = axios.create({
-    baseURL: window.location.hostname !== "localhost" ? window.location.origin + "/winapp/index.php?" : devUrl
+    baseURL: window.location.hostname !== "localhost" ? window.location.origin + "/winapp/index.php?" : devUrl,
+    withCredentials: true,
 });
+
+
+client.defaults.raxConfig = {
+    instance: client,
+    retry: 3,
+    noResponseRetries: 5,
+    retryDelay: 500,
+    httpMethodsToRetry: ['GET', 'OPTIONS', 'POST'],
+    shouldResetTimeout: false,
+    statusCodesToRetry: [[100, 199], [429, 429], [500, 599, 502]],
+    onRetryAttempt: (err) => {
+        const cfg = rax.getConfig(err);
+        return new Promise(resolve => setTimeout(resolve, cfg.retry * 1000));
+    }
+};
+rax.attach(client);
+
 
 export default createStore({
     state: {
@@ -366,7 +383,7 @@ export default createStore({
                     transferFromId: obj.transferFromId,
                     transferToId: obj.transferToId,
                     messages: [InitMessage],
-                    message: null,
+                    message: '',
                     warning: false,
                     confirmations: [],
                     newMessagesCount: 0,
@@ -455,53 +472,6 @@ export default createStore({
                             }
                         }
                     }
-
-                    /*
-                                            if (activeChatIndex === -1) {
-                                                new_item = {
-                                                    type: item._attributes.type,
-                                                    status: item._attributes.status,
-                                                    chatObjectId: item.chatobjectid._cdata,
-                                                    userFullName: item.userfullname._cdata,
-                                                    userEmail: item.useremail._cdata,
-                                                    requestStaffId: item.requeststaffid._cdata,
-                                                    subject: item.subject._cdata,
-                                                    departmentTitle: item.departmenttitle._cdata,
-                                                    chatSessionId: item.chatsessionid._cdata,
-                                                    transferStatus: item.transferstatus._cdata,
-                                                    transferFromId: item.transferfromid._cdata,
-                                                    transferToId: item.transfertoid._cdata,
-                                                    chatType: item.chattype._cdata,
-                                                    duration: item.duration._cdata,
-                                                    waitTime: item.waittime._cdata,
-                                                    creationDate: item.creationdate._cdata,
-
-                                                    initialChatType: item.initialchattype._cdata,
-                                                    messages: [],
-                                                    confirmations: [],
-                                                    newMessagesCount: 0,
-                                                    playSound: false,
-                                                    active: true,
-                                                };
-                                                if (new_item.status === "2") {
-                                                    queuelist.push(new_item);
-                                                } else if (new_item.status === "1") {
-                                                    state.activeChats.push(new_item);
-                                                }
-                                            } else {
-                                                if (item._attributes.status === "3" ||
-                                                    item._attributes.status === "4" ||
-                                                    item._attributes.status === "5") {
-                                                    //state.activeChats.splice(activeChatIndex, 1);
-                                                    state.activeChats[activeChatIndex].status = item._attributes.status;
-                                                    state.activeChats[activeChatIndex].active = false;
-                                                } else if (item._attributes.status === "1" ||
-                                                    item._attributes.status === "2") {
-                                                    state.activeChats[activeChatIndex].status = item._attributes.status;
-                                                    state.activeChats[activeChatIndex].active = true;
-                                                }
-                                            }*/
-
                 } else {
                     let activeChatObj = state.activeChats.find(x => x.chatObjectId === queue.chat.chatobjectid._cdata);
                     let activeChatIndex = state.activeChats.indexOf(activeChatObj);
@@ -523,51 +493,6 @@ export default createStore({
                             state.activeChats[activeChatIndex].active = true;
                         }
                     }
-
-                    /*
-                     if (activeChatIndex === -1) {
-                         new_item = {
-                             type: queue.chat._attributes.type,
-                             status: queue.chat._attributes.status,
-                             chatObjectId: queue.chat.chatobjectid._cdata,
-                             userFullName: queue.chat.userfullname._cdata,
-                             userEmail: queue.chat.useremail._cdata,
-                             requestStaffId: queue.chat.requeststaffid._cdata,
-                             subject: queue.chat.subject._cdata,
-                             departmentTitle: queue.chat.departmenttitle._cdata,
-                             chatSessionId: queue.chat.chatsessionid._cdata,
-                             transferStatus: queue.chat.transferstatus._cdata,
-                             transferFromId: queue.chat.transferfromid._cdata,
-                             transferToId: queue.chat.transfertoid._cdata,
-                             chatType: queue.chat.chattype._cdata,
-                             duration: queue.chat.duration._cdata,
-                             waitTime: queue.chat.waittime._cdata,
-                             creationDate: queue.chat.creationdate._cdata,
-                             initialChatType: queue.chat.initialchattype._cdata,
-                             messages: [],
-                             confirmations: [],
-                             newMessagesCount: 0,
-                             playSound: false,
-                             active: true,
-                         };
-                         if (new_item.status === "2") {
-                             queuelist.push(new_item);
-                         } else if (new_item.status === "1") {
-                             state.activeChats.push(new_item);
-                         }
-                     } else {
-                         if (queue.chat._attributes.status === "3" ||
-                             queue.chat._attributes.status === "4" ||
-                             queue.chat._attributes.status === "5") {
-                             //state.activeChats.splice(activeChatIndex, 1);
-                             state.activeChats[activeChatIndex].status = queue.chat._attributes.status;
-                             state.activeChats[activeChatIndex].active = false;
-                         } else if (queue.chat._attributes.status === "1" ||
-                             queue.chat._attributes.status === "2") {
-                             state.activeChats[activeChatIndex].status = queue.chat._attributes.status;
-                             state.activeChats[activeChatIndex].active = true;
-                         }
-                     }*/
                 }
             }
             state.queue = queuelist;
@@ -626,11 +551,12 @@ export default createStore({
                         if (activeChatIndex > -1) {
                             state.activeChats[activeChatIndex].newMessagesCount += newmessages.length;
                             state.activeChats[activeChatIndex].resetNewMessageCount = true;
+                            state.activeChats[activeChatIndex].playSound = true;
 
                             for (let nmsitem of newmessages) {
                                 state.activeChats[activeChatIndex].messages.push(nmsitem)
                             }
-                            if (newmessages.length){
+                            if (newmessages.length) {
                                 state.activeChats[activeChatIndex].warning = false;
                             }
                         }
@@ -778,7 +704,7 @@ export default createStore({
                             state.activeChats[activeChatIndex].messages.push(nmsitem)
                         }
 
-                        if (newmessages.length){
+                        if (newmessages.length) {
                             state.activeChats[activeChatIndex].warning = false;
                         }
                     }
@@ -925,7 +851,7 @@ export default createStore({
          */
         login({commit}, credentials) {
             return new Promise((resolve, reject) => {
-                client.post("/Core/Default/Login", custom.createRequest(credentials), {withCredentials: true})
+                client.post("/Core/Default/Login", custom.createRequest(credentials))
                     .then(resp => {
                         var result = custom.parseResponse(resp);
                         if (result.kayako_livechat.status._cdata === "1") {
@@ -965,7 +891,7 @@ export default createStore({
 
                 return new Promise((resolve, reject) => {
                     client
-                        .post("/Core/Default/Logout", custom.createRequest(requestData), {withCredentials: true})
+                        .post("/Core/Default/Logout", custom.createRequest(requestData))
                         .then((response) => {
                             var result = custom.parseResponse(response);
                             if (result.kayako_livechat.status._cdata === "1") {
@@ -1020,9 +946,15 @@ export default createStore({
             return new Promise((resolve, reject) => {
                 if (context.getters.loggedIn) {
                     client
-                        .post("/LiveChat/FetchVisitors", custom.createRequest(requestData), {withCredentials: true})
+                        .post("/LiveChat/FetchVisitors", custom.createRequest(requestData))
                         .then((response) => {
                             var result = custom.parseResponse(response);
+                            if (!result.kayako_livechat){
+                                localStorage.removeItem("config");
+                                context.commit("logout");
+                                router.push({name: "Login"});
+                                reject({status: false, message: "session timeout please login again"});
+                            }
                             if (result.kayako_livechat.status && result.kayako_livechat.status._cdata === "-1") {
                                 localStorage.removeItem("config");
                                 context.commit("logout");
@@ -1093,7 +1025,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 client
-                    .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
+                    .post("/LiveChat/events", custom.createRequest(requestData))
                     .then((response) => {
                         let result = custom.parseResponse(response);
                         context.state.lastRequest = Math.round(new Date().getTime() / 1000);
@@ -1152,7 +1084,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 client
-                    .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
+                    .post("/LiveChat/events", custom.createRequest(requestData))
                     .then((response) => {
                         let result = custom.parseResponse(response);
                         context.state.lastRequest = Math.round(new Date().getTime() / 1000);
@@ -1208,7 +1140,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 client
-                    .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
+                    .post("/LiveChat/events", custom.createRequest(requestData))
                     .then((response) => {
                         let result = custom.parseResponse(response);
                         context.state.lastRequest = Math.round(new Date().getTime() / 1000);
@@ -1263,7 +1195,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 client
-                    .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
+                    .post("/LiveChat/events", custom.createRequest(requestData))
                     .then((response) => {
                         let result = custom.parseResponse(response);
                         context.state.lastRequest = Math.round(new Date().getTime() / 1000);
@@ -1326,11 +1258,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 client
-                    .post("/LiveChat/events", custom.createRequest(requestData),
-                        {
-                            withCredentials: true,
-                        }
-                    )
+                    .post("/LiveChat/events", custom.createRequest(requestData))
                     .then((response) => {
                         let result = custom.parseResponse(response);
                         context.state.lastRequest = Math.round(new Date().getTime() / 1000);
@@ -1362,7 +1290,6 @@ export default createStore({
                 client
                     .post("/LiveChat/Chat/UploadWeb", formData,
                         {
-                            //withCredentials: true,
                             headers: {
                                 'Content-Type': 'multipart/form-data',
                             }
@@ -1447,7 +1374,7 @@ export default createStore({
 
                 return new Promise((resolve, reject) => {
                     client
-                        .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
+                        .post("/LiveChat/events", custom.createRequest(requestData))
                         .then((response) => {
                             let result = custom.parseResponse(response);
                             context.state.lastRequest = Math.round(new Date().getTime() / 1000);
@@ -1496,7 +1423,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 client
-                    .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
+                    .post("/LiveChat/events", custom.createRequest(requestData))
                     .then((response) => {
                         let result = custom.parseResponse(response);
                         context.state.lastRequest = Math.round(new Date().getTime() / 1000);
@@ -1562,7 +1489,7 @@ export default createStore({
 
             return new Promise((resolve, reject) => {
                 client
-                    .post("/LiveChat/events", custom.createRequest(requestData), {withCredentials: true})
+                    .post("/LiveChat/events", custom.createRequest(requestData))
                     .then((response) => {
                         let result = custom.parseResponse(response);
                         context.commit("parseEvents", result.events);

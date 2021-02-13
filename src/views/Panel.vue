@@ -258,7 +258,7 @@
               <textarea :disabled="!isSelectedChatActive" v-model="message" @keydown.enter.prevent="sendMessageHandler"
                         class="mt-1 rtl block w-full h-full rounded-sm bg-gray-200 dark:bg-gray-800 border-transparent
                         focus:border-gray-500 focus:bg-white focus:ring-0"
-                        placeholder="متن پیغام"></textarea>
+                        placeholder="متن پیغام" ref="msg"></textarea>
               <input ref="attachment" accept="image/*" name="attachment" type="file" class="hidden"
                      @change="sendAttachment">
             </div>
@@ -305,11 +305,10 @@
               <div class="text-sm px-1 py-1 text-right text-gray-500 dark:text-gray-400 pr-10">{{ user.subject }}</div>
               <div class="flex flex-row-reverse actions px-1 justify-center">
                 <button type="button" @click="accept(user.chatObjectId,index,)" :disabled="processing"
-                        class="text-green-500 ml-1 inline-flex items-center px-2 py-1 border border-gray-300 rounded-md
-                        shadow-sm text-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-500
-                        hover:text-green-800 focus:outline-none focus:ring-0 px-2 py-1 border
-                        border-gray-300 dark:border-gray-400 rounded-md shadow-sm text-sm hover:text-red-800
-                        focus:outline-none focus:ring-0">
+                        class="text-white bg-green-550 ml-1 inline-flex items-center px-2 py-1 rounded-md
+                        shadow-sm text-sm dark:bg-green-650 hover:bg-green-650 dark:hover:bg-green-550
+                        focus:outline-none focus:ring-0 px-2 py-1
+                        border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-0">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                        class="feather feather-check w-4 h-4">
@@ -318,11 +317,10 @@
                   <span class="text-sm pl-1">شروع گفتگو</span>
                 </button>
                 <button type="button" @click="reject(user.chatObjectId,index)" :disabled="processing"
-                        class="text-red-500 inline-flex items-center px-2 py-1 border border-gray-300 rounded-md
-                        shadow-sm text-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-500
-                        hover:text-red-800 focus:outline-none
-                        focus:ring-0 px-2 py-1 border border-gray-300 dark:border-gray-400 rounded-md shadow-sm text-sm
-                        hover:text-red-800 focus:outline-none focus:ring-0">
+                        class="text-white inline-flex items-center px-2 py-1  rounded-md
+                        shadow-sm text-sm bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500
+                        focus:outline-none focus:ring-0 px-2 py-1 rounded-md shadow-sm text-sm
+                        focus:outline-none focus:ring-0">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                        class="feather feather-x w-4 h-4">
@@ -456,7 +454,7 @@ export default {
       PendingChatList: [],
       activeChats: [],
       selectedChat: null,
-      message: null,
+      message: "",
       notification: false,
       messageSoundActive: false,
     }
@@ -522,10 +520,10 @@ export default {
   watch: {
     PendingChatList(val, oldVal) {
       if (val.length > oldVal.length) {
-        this.toast.info('درخواست جدید گفتگو', {
-          position: POSITION.BOTTOM_RIGHT
-        });
-        this.createNotification();
+        // this.toast.info('درخواست جدید گفتگو', {
+        //   position: POSITION.BOTTOM_RIGHT
+        // });
+        // this.createNotification();
         this.playSound();
         this.sideMenuSelectedTab = 'chats';
       }
@@ -556,6 +554,7 @@ export default {
   },
   methods: {
     requestNotificationPermission() {
+      let img = 'img/notification.png';
       // Let's check if the browser supports notifications
       if (!("Notification" in window)) {
         alert("This browser does not support desktop notification");
@@ -564,7 +563,10 @@ export default {
       // Let's check whether notification permissions have already been granted
       else if (Notification.permission === "granted") {
         // If it's okay let's create a notification
-        new Notification("Hi there!");
+        new Notification("اعلان ها فعال میباشد", {
+          icon: img,
+          dir: 'rtl',
+        });
       }
 
       // Otherwise, we need to ask the user for permission
@@ -572,7 +574,10 @@ export default {
         Notification.requestPermission().then((permission) => {
           // If the user accepts, let's create a notification
           if (permission === "granted") {
-            new Notification("اعلان ها فعال شد");
+            new Notification("اعلان ها فعال شد", {
+              icon: img,
+              dir: 'rtl',
+            });
             this.notification = true
           }
         });
@@ -580,10 +585,10 @@ export default {
     },
     createNotification() {
       // Create and show the notification
-      let img = 'img/notification.png';
+
       //let text = 'از طرف ' + name + ' با شماره ' + mobile + ' از دپارتمان ' + department;
       let text = 'شما درخواست گفتگوی جدیدی دارید'
-
+      let img = 'img/notification.png';
       new Notification('درخواست گفتگو', {
         body: text,
         icon: img,
@@ -730,11 +735,15 @@ export default {
       if (!e.shiftKey) {
         this.sendMessage();
       } else {
-        this.message = `${this.message}\n`
+        if (this.message) {
+          this.message = `${this.message}\n`
+        } else {
+          this.message = '\n'
+        }
       }
     },
     sendMessage() {
-      if (this.message !== null && !this.processing) {
+      if (this.message !== '' && !this.processing) {
         this.processing = true
         this.$store
             .dispatch("sendMessage", {
@@ -743,12 +752,19 @@ export default {
               message: this.message,
             })
             .then(() => {
-              this.message = null;
+              this.message = '';
               this.scrollToEnd();
-              this.processing = false
             })
             .catch((error) => {
+              this.toast.error('مشکل اتصال به سرور', {
+                position: POSITION.TOP_RIGHT
+              });
+              this.createNotification();
               console.log(error);
+
+            })
+            .finally(() => {
+              this.processing = false;
             });
       }
     },
@@ -789,36 +805,15 @@ export default {
           });
     },
     sendCanned(canned) {
+      let message = ''
       if (canned.message) {
-        this.$store
-            .dispatch("sendMessage", {
-              chatObjectId: this.selectedChat,
-              type: "text",
-              message: canned.message,
-            })
-            .then(() => {
-              this.message = null;
-              this.scrollToEnd();
-            })
-            .catch((error) => {
-              console.log(error);
-            });
+        message += canned.message;
       }
       if (canned.url) {
-        this.$store
-            .dispatch("sendMessage", {
-              chatObjectId: this.selectedChat,
-              type: "url",
-              message: canned.url,
-            })
-            .then(() => {
-              this.message = null;
-              this.scrollToEnd();
-            })
-            .catch((error) => {
-              console.log(error);
-            });
+        message += '\n\n' + canned.url;
       }
+      this.message = message
+      this.$refs.msg.focus()
       this.isCannedMenuOpen = false;
     },
     endChat() {
@@ -869,14 +864,17 @@ export default {
       }, this.cronInterval);
     },
     detectNewMessage() {
+      let play_sound = false
       for (const item of this.activeChats) {
         if (item.playSound) {
           if (this.messageSoundActive) {
-            this.playMessageSound()
+            play_sound = true
           }
           this.$store.commit('turnOffMessageSound', item.chatObjectId)
-          break;
         }
+      }
+      if (play_sound) {
+        this.playMessageSound()
       }
     }
   },
