@@ -230,7 +230,7 @@
             اتمام گفتگو
           </button>
         </div>
-        <div class="h-full bg-white dark:bg-gray-900 text-gray-800 text-sm overflow-y-auto font-normal rounded-t-lg"
+        <div class="h-full bg-white dark:bg-gray-900 text-gray-800 text-sm overflow-y-auto font-normal"
              ref="chatContainer">
           <div class="h-full flex p-8 items-center justify-center" v-if="!selectedChat">
             <img src="../assets/images/logo.svg" class="w-1/2">
@@ -304,7 +304,7 @@
                 <button type="button" @click="accept(user.chatObjectId,index,)" :disabled="processing"
                         class="text-white bg-green-550 ml-1 inline-flex items-center px-2 py-1 rounded-md
                         shadow-sm text-sm dark:bg-green-650 hover:bg-green-650 dark:hover:bg-green-550
-                        focus:outline-none focus:ring-0 px-2 py-1
+                        focus:outline-none focus:ring-0 px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed
                         border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-0">
                   <svg class="feature-icon h-4 w-4">
                     <use xlink:href="fonts/feather-sprite.svg#check"/>
@@ -314,8 +314,8 @@
                 <button type="button" @click="reject(user.chatObjectId,index)" :disabled="processing"
                         class="text-white inline-flex items-center px-2 py-1  rounded-md
                         shadow-sm text-sm bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500
-                        focus:outline-none focus:ring-0 px-2 py-1 rounded-md shadow-sm text-sm
-                        focus:outline-none focus:ring-0">
+                        focus:outline-none focus:ring-0 px-2 py-1 rounded-md shadow-sm text-sm disabled:opacity-50
+                        focus:outline-none focus:ring-0 disabled:cursor-not-allowed">
                   <svg class="feature-icon w-4 h-4">
                     <use xlink:href="fonts/feather-sprite.svg#x"/>
                   </svg>
@@ -437,6 +437,7 @@ export default {
       processing: false,
       cron: null,
       cronInterval: 10000,
+      isCronRunning: false,
       sideMenuSelectedTab: 'chats', //agents
       currentUser: null,
       staffList: [],
@@ -846,6 +847,10 @@ export default {
     },
     cronTask() {
       this.cron = setInterval(() => {
+        if (this.isCronRunning){
+          return;
+        }
+        this.isCronRunning = true;
         this.$store
             .dispatch("fetchVisitors")
             .then(() => {
@@ -855,16 +860,20 @@ export default {
               this.PendingChatList = this.$store.getters["getPendingChats"];
               this.activeChats = this.$store.getters["getActiveChats"];
               this.detectNewMessage()
+              this.isCronRunning = false;
             })
             .catch((error) => {
               console.log(error);
+              this.isCronRunning = false;
             });
         if (this.activeChats.length > 0) {
+          this.isCronRunning = true;
           this.$store.dispatch("sendConfirmations")
               .then(() => {
-                //this.activeChats = this.$store.getters["getActiveChats"];
+                this.isCronRunning = false;
               })
               .catch((error) => {
+                this.isCronRunning = false;
                 console.log(error);
               });
         }
