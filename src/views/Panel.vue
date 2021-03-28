@@ -1,125 +1,124 @@
 <template>
-  <div class="panel h-screen font-normal">
-    <header class="fixed bg-kayako-purple w-full shadow">
-      <div class="w-full mx-auto px-4 sm:px-6 lg:px-6">
-        <div class="flex flex-row-reverse items-center justify-between h-12">
-          <div class="flex items-center flex-row-reverse">
-            <div class="-mr-2 flex sm:hidden">
-              <!-- Mobile menu button -->
-              <button
-                  class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white focus:outline-none focus:ring-0">
-                <span class="sr-only">Open main menu</span>
-                <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-              </button>
-            </div>
-            <div class="flex-shrink-0 hidden sm:block">
-              <img class="h-8" src="../assets/images/logo_fa.svg" alt="Workflow">
-            </div>
-            <div class="">
-              <div class="mr-5 flex flex-row-reverse items-baseline space-x-4">
-                <!--<a href="#" class="px-3 py-2 rounded-md text-sm text-white">پنل گفتگو</a>-->
-                <!--<a href="#" class="px-3 py-2 rounded-md text-sm text-gray-400 hover:text-white">آمار</a>-->
-              </div>
+  <header class="fixed bg-kayako-purple w-full shadow">
+    <div class="w-full mx-auto px-4 sm:px-6 lg:px-6">
+      <div class="flex flex-row-reverse items-center justify-between h-12">
+        <div class="flex items-center flex-row-reverse">
+          <div class="-mr-2 flex sm:hidden">
+            <!-- Mobile menu button -->
+            <button
+                class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white focus:outline-none focus:ring-0">
+              <span class="sr-only">Open main menu</span>
+              <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+          </div>
+          <div class="flex-shrink-0 hidden sm:block">
+            <img class="h-8" src="../assets/images/logo_fa.svg" alt="Workflow">
+          </div>
+          <div class="">
+            <div class="mr-5 flex flex-row-reverse items-baseline space-x-4">
+              <!--<a href="#" class="px-3 py-2 rounded-md text-sm text-white">پنل گفتگو</a>-->
+              <!--<a href="#" class="px-3 py-2 rounded-md text-sm text-gray-400 hover:text-white">آمار</a>-->
             </div>
           </div>
-          <div class="flex items-center">
-            <div class="mr-4 flex items-center md:mr-6">
+        </div>
+        <div class="flex items-center">
+          <div class="mr-4 flex items-center md:mr-6">
 
-              <!-- Profile dropdown -->
-              <div class="mr-3 relative z-10" v-click-outside="closeUserMenu">
-                <button @click.stop="userDropDownMenu = !userDropDownMenu"
-                        class="max-w-xs rounded-full flex items-center text-sm focus:outline-none focus:ring-0"
-                        id="user-menu" aria-haspopup="true">
-                  <svg class="text-white hidden sm:block mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                       viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clip-rule="evenodd"/>
-                  </svg>
-                  <span class="text-white mr-1 hidden sm:block">{{ currentUser.fullName }}</span>
-                  <span class="sr-only">Open user menu</span>
-                  <span class="h-8 w-8 rounded-full border overflow-hidden bg-gray-100 border-gray-100 shadow-sm">
+            <!-- Profile dropdown -->
+            <div class="mr-3 relative z-10" v-click-outside="closeUserMenu">
+              <button @click.stop="userDropDownMenu = !userDropDownMenu"
+                      class="max-w-xs rounded-full flex items-center text-sm focus:outline-none focus:ring-0"
+                      id="user-menu" aria-haspopup="true">
+                <svg class="text-white hidden sm:block mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clip-rule="evenodd"/>
+                </svg>
+                <span class="text-white mr-1 hidden sm:block">{{ currentUser.fullName }}</span>
+                <span class="sr-only">Open user menu</span>
+                <span class="h-8 w-8 rounded-full border overflow-hidden bg-gray-100 border-gray-100 shadow-sm">
                     <svg class="h-full w-full text-purple-400" fill="currentColor" viewBox="0 0 24 24">
                       <path
                           d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                   </span>
-                  <div :class="'status-'+currentUser.status"></div>
-                </button>
-                <div v-if="userDropDownMenu"
-                     class="origin-top-right z-20 absolute left-0 text-right mt-2 w-48 rounded-md shadow-lg py-1
+                <div :class="'status-'+currentUser.status"></div>
+              </button>
+              <div v-if="userDropDownMenu"
+                   class="origin-top-right z-20 absolute left-0 text-right mt-2 w-48 rounded-md shadow-lg py-1
                      bg-white dark:bg-gray-700 ring-0 "
-                     role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
-                  <a @click="updateStatus(1)"
-                     class="flex hand flex-row-reverse items-center justify-between px-4 py-2 text-sm
+                   role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
+                <a @click="updateStatus(1)"
+                   class="flex hand flex-row-reverse items-center justify-between px-4 py-2 text-sm
                      dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                     role="menuitem">
-                    <span>آنلاین</span>
-                    <div
-                        class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-green-400 z-2"></div>
-                  </a>
-                  <a @click="updateStatus(5)"
-                     class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm
+                   role="menuitem">
+                  <span>آنلاین</span>
+                  <div
+                      class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-green-400 z-2"></div>
+                </a>
+                <a @click="updateStatus(5)"
+                   class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm
                           dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                     role="menuitem">
-                    <span>مشغول</span>
-                    <div
-                        class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-red-400 z-2"></div>
-                  </a>
-                  <a @click="updateStatus(7)"
-                     class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm
+                   role="menuitem">
+                  <span>مشغول</span>
+                  <div
+                      class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-red-400 z-2"></div>
+                </a>
+                <a @click="updateStatus(7)"
+                   class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm
                           dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                     role="menuitem">
-                    <span>مخفی</span>
-                    <div
-                        class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-gray-400 z-2"></div>
-                  </a>
-                  <hr class="dark:border-gray-600"/>
-                  <a class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm
+                   role="menuitem">
+                  <span>مخفی</span>
+                  <div
+                      class="top-0 right-0 h-3 w-3 border-1 border-white rounded-full bg-gray-400 z-2"></div>
+                </a>
+                <hr class="dark:border-gray-600"/>
+                <a class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm
                           dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                     @click="openSettingsModal"
-                     role="menuitem">
-                    <span>تنظیمات</span>
-                    <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
-                      <use xlink:href="fonts/feather-sprite.svg#settings"/>
-                    </svg>
-                  </a>
-                  <a @click="logout" class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm  hover:bg-gray-100
+                   @click="openSettingsModal"
+                   role="menuitem">
+                  <span>تنظیمات</span>
+                  <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
+                    <use xlink:href="fonts/feather-sprite.svg#settings"/>
+                  </svg>
+                </a>
+                <a @click="logout" class="flex flex-row-reverse items-center justify-between px-4 py-2 text-sm  hover:bg-gray-100
                   dark:hover:text-gray-200 dark:hover:bg-gray-800 cursor-pointer"
-                     role="menuitem">
-                    <span>خروج</span>
-                    <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
-                      <use xlink:href="fonts/feather-sprite.svg#power"/>
-                    </svg>
-                  </a>
-                </div>
+                   role="menuitem">
+                  <span>خروج</span>
+                  <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
+                    <use xlink:href="fonts/feather-sprite.svg#power"/>
+                  </svg>
+                </a>
               </div>
             </div>
-            <button v-if="!notification" @click="requestNotificationPermission"
-                    class="flex justify-center px-3 py-2 border border-transparent text-base font-medium rounded-md text-purple-600 bg-white hover:bg-purple-50">
-              <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
-                <use xlink:href="fonts/feather-sprite.svg#bell"/>
-              </svg>
-              <span class="text-sm">فعال سازی اعلان ها</span>
-            </button>
           </div>
+          <button v-if="!notification" @click="requestNotificationPermission"
+                  class="flex justify-center px-3 py-2 border border-transparent text-base font-medium rounded-md text-purple-600 bg-white hover:bg-purple-50">
+            <svg class="feature-icon hidden sm:block mr-1 h-4 w-4">
+              <use xlink:href="fonts/feather-sprite.svg#bell"/>
+            </svg>
+            <span class="text-sm">فعال سازی اعلان ها</span>
+          </button>
         </div>
       </div>
-    </header>
-
-    <div class="grid grid-cols-5 flex-row-reverse">
+    </div>
+  </header>
+  <div class="mx-auto w-full items-center h-screen font-normal bg-gray-50 dark:bg-gray-900">
+    <div class="pt-14 h-full flex py-4">
       <!-- chat area -->
       <div
-          class="flex flex-col col-span-5 md:col-span-4 bg-gray-100 dark:bg-gray-800 pt-12 justify-end h-screen text-sm">
+          class="flex flex-col w-full flex-grow mx-2 bg-gray-100 border dark:border-gray-600 dark:bg-gray-800 h-full text-sm rounded-lg">
         <ul class="list-reset w-full flex border-b flex-row-reverse border-gray-300 dark:border-gray-600 text-gray-500
-        bg-gray-100 dark:bg-gray-800"
-            v-if="activeChats.length > 0">
-          <li class="mr-1" v-for="(item, index) in activeChats" v-bind:key="index">
-            <a class="py-1 px-4 flex items-center rtl hover:text-gray-900 dark:hover:text-gray-300"
-               :class="{'chat-tab-active':item.chatObjectId === selectedChat}" @click="selectChat(item.chatObjectId)">
+        bg-gray-100 dark:bg-gray-800 rounded-t-lg">
+          <li v-for="(item, index) in activeChats" v-bind:key="index">
+            <a class="py-1 px-4 flex items-center rtl hover:text-gray-700 dark:hover:text-gray-300"
+               :class="{'chat-tab-active':item.chatObjectId === selectedChat,'rounded-tr-lg':index===0}"
+               @click="selectChat(item.chatObjectId)">
               <span class="cursor-pointer text-right">
                 {{ item.userFullName }} <br/>
                 {{ item.userEmail.replace('@snapp.cab', '') }}
@@ -221,17 +220,17 @@
             </div>
           </div>
           <button type="button" @click="endChat()"
-                  class="inline-flex items-center px-2 py-1 border border-gray-300 dark:border-gray-400 rounded-md
-                  shadow-sm text-sm
-                    text-red-500 dark:text-red-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
-                    hover:text-red-600 dark:hover:text-red-500 focus:outline-none focus:ring-0">
+                  class="text-white inline-flex items-center px-2 py-1  rounded-md
+                        shadow-sm text-sm bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500
+                        focus:outline-none focus:ring-0 px-2 py-1 rounded-md shadow-sm text-sm
+                        focus:outline-none focus:ring-0">
             <svg class="feature-icon -ml-1 mr-2 h-4 w-4">
               <use xlink:href="fonts/feather-sprite.svg#x"/>
             </svg>
             اتمام گفتگو
           </button>
         </div>
-        <div class="h-full bg-white dark:bg-gray-900 text-gray-800 text-sm overflow-y-auto font-normal"
+        <div class="h-full bg-white dark:bg-gray-900 text-gray-800 text-sm overflow-y-auto font-normal rounded-t-lg"
              ref="chatContainer">
           <div class="h-full flex p-8 items-center justify-center" v-if="!selectedChat">
             <img src="../assets/images/logo.svg" class="w-1/2">
@@ -241,35 +240,33 @@
             <messages :chat="SelectedChatObject" @loaded="scrollToEnd"></messages>
           </div>
         </div>
-        <footer class="h-1/6 bg-white dark:bg-gray-900">
-          <div class="flex justify-center h-full">
-            <div class="relative w-full py-1">
-              <div class="absolute inset-y-0 flex items-center pl-2">
-                <button type="button" class="focus:outline-none" :disabled="!isSelectedChatActive"
-                        @click="selectAttachment()">
-                  <svg class="mx-auto h-10 w-10 text-gray-400" stroke="#43be80" fill="none" viewBox="0 0 48 48"
-                       aria-hidden="true">
-                    <path
-                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-              <textarea :disabled="!isSelectedChatActive" v-model="message" @keydown.enter.prevent="sendMessageHandler"
-                        class="mt-1 rtl block w-full h-full rounded-sm bg-gray-200 dark:bg-gray-800 border-transparent
-                        focus:border-gray-500 focus:bg-white focus:ring-0"
-                        placeholder="متن پیغام" ref="msg"></textarea>
-              <input ref="attachment" accept="image/*" name="attachment" type="file" class="hidden"
-                     @change="sendAttachment">
-            </div>
+        <footer class="bg-gray-100 dark:bg-gray-700 p-2 rounded-b-md">
+          <div class="flex items-center">
+            <button type="button" class="focus:outline-none pr-1" :disabled="!isSelectedChatActive"
+                    @click="selectAttachment()">
+              <svg class="mx-auto h-10 w-10 text-gray-400"
+                   :stroke="isSelectedChatActive? '#43be80':'#6c757d'" fill="none" viewBox="0 0 48 48"
+                   aria-hidden="true">
+                <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <textarea :disabled="!isSelectedChatActive" v-model="message" @keydown.enter.prevent="sendMessageHandler"
+                      class="w-full px-2 dark:bg-gray-800 rounded-md resize-none focus:border-gray-300
+                      dark:text-gray-300 border-gray-300 dark:border-gray-600  focus:ring-2 focus:ring-gray-200
+                      focus:ring-opacity-50 dark:focus:ring-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+                      ref="msg" dir="auto"></textarea>
+            <input ref="attachment" accept="image/*" name="attachment" type="file" class="hidden"
+                   @change="sendAttachment">
           </div>
         </footer>
       </div>
       <!-- side menu -->
-      <aside class="flex hidden col-span-1 md:block h-screen shadow pt-11 pb-16 h-full overflow-y-hidden
-      dark:bg-gray-800 border-gray-300 dark:border-gray-600 border-l-2">
-        <div>
-          <nav class="flex flex-row-reverse bg-gray-50 dark:bg-gray-800">
+      <div class="flex flex-col min-w-1/4 h-full overflow-y-hidden mx-2
+      dark:bg-gray-800 bg-white border dark:border-gray-600 rounded-lg">
+        <div class="w-full">
+          <nav class="flex flex-row-reverse bg-gray-100 dark:bg-gray-800">
             <button @click="changeSideMenuTab('chats')" :class="{'side-tab-active':sideMenuSelectedTab=== 'chats'}"
                     class="side-tab block focus:outline-none">
               درخواست های گفتگو
@@ -309,10 +306,8 @@
                         shadow-sm text-sm dark:bg-green-650 hover:bg-green-650 dark:hover:bg-green-550
                         focus:outline-none focus:ring-0 px-2 py-1
                         border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                       class="feather feather-check w-4 h-4">
-                    <polyline points="20 6 9 17 4 12"></polyline>
+                  <svg class="feature-icon h-4 w-4">
+                    <use xlink:href="fonts/feather-sprite.svg#check"/>
                   </svg>
                   <span class="text-sm pl-1">شروع گفتگو</span>
                 </button>
@@ -321,11 +316,8 @@
                         shadow-sm text-sm bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500
                         focus:outline-none focus:ring-0 px-2 py-1 rounded-md shadow-sm text-sm
                         focus:outline-none focus:ring-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                       class="feather feather-x w-4 h-4">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  <svg class="feature-icon w-4 h-4">
+                    <use xlink:href="fonts/feather-sprite.svg#x"/>
                   </svg>
                   <span class="text-sm pl-1">رد درخواست</span>
                 </button>
@@ -369,7 +361,7 @@
             </ul>
           </template>
         </div>
-      </aside>
+      </div>
     </div>
     <!-- settings -->
     <modal :show="isSettingModalOpen" :close-handler="closeSettingModal">
@@ -457,6 +449,7 @@ export default {
       message: "",
       notification: false,
       messageSoundActive: false,
+      requestSound: null,
     }
   },
   setup() {
@@ -515,6 +508,8 @@ export default {
       this.notification = true
     }
 
+    this.requestSound = new Audio(require('@/assets/sound/tone1.mp3'))
+
     this.cronTask();
   },
   watch: {
@@ -546,7 +541,7 @@ export default {
       let obj = this.$store.state.activeChats.find(x => x.chatObjectId === this.selectedChat);
       let index = this.$store.state.activeChats.indexOf(obj);
 
-      if (this.$store.state.activeChats[index].active) {
+      if (index > -1 && this.$store.state.activeChats[index].active) {
         return true;
       }
       return false;
@@ -655,8 +650,9 @@ export default {
       this.userDropDownMenu = false;
     },
     playSound() {
-      let audio = new Audio(require('@/assets/sound/tone1.mp3'));
-      audio.play();
+      //this.requestSound = new Audio(require('@/assets/sound/tone1.mp3'));
+      //let audio = new Audio(require('@/assets/sound/tone1.mp3'));
+      this.requestSound.play();
     },
     playMessageSound() {
       let audio = new Audio(require('@/assets/sound/message.wav'));
@@ -667,8 +663,16 @@ export default {
           .dispatch("transfer", {chatObjectId, type, data})
           .then(() => {
             this.isTransferMenuOpen = false;
+            this.toast.success('در حال انتقال گفتگو', {
+              position: POSITION.TOP_RIGHT
+            });
+            this.createNotification();
           })
           .catch((error) => {
+            this.toast.error('مشکل در انتقال گفتگو', {
+              position: POSITION.TOP_RIGHT
+            });
+            this.createNotification();
             console.log(error);
           });
     },
@@ -678,6 +682,7 @@ export default {
           .then(() => {
           })
           .catch((error) => {
+
             console.log(error);
           });
       this.PendingChatList.splice(index, 1);
@@ -742,6 +747,9 @@ export default {
         }
       }
     },
+    /**
+     * @todo check if chat is enable
+     */
     sendMessage() {
       if (this.message !== '' && !this.processing) {
         this.processing = true
@@ -831,7 +839,6 @@ export default {
               .catch((error) => {
                 console.log(error);
               });
-
         }
         this.selectedChat = null;
         this.$store.state.activeChats.splice(index, 1);
@@ -887,6 +894,15 @@ export default {
 };
 </script>
 <style>
+.top-20 {
+  top:10px;
+  position:relative;
+}
+
+.hh {
+  height:calc(100vh - 5rem);
+}
+
 .status-1 {
   @apply absolute top-0 right-0 h-3 w-3 border-2 border-white rounded-full bg-green-400;
 }
@@ -920,11 +936,11 @@ export default {
 }
 
 .chat-tab-active {
-  @apply bg-white dark:bg-gray-800 border-b-2 border-green-550 dark:text-gray-300;
+  @apply bg-gray-200 dark:bg-gray-800 border-b-2 text-gray-700 border-green-550 dark:text-gray-300;
 }
 
 .side-tab {
-  @apply text-gray-600 dark:text-gray-400 py-4 px-4 text-sm w-full border-b dark:border-gray-600
+  @apply text-gray-600 dark:text-gray-400 py-3 px-4 text-sm w-full border-b dark:border-gray-600
 }
 
 .side-tab-active {

@@ -21,10 +21,10 @@ client.defaults.raxConfig = {
     retryDelay: 500,
     httpMethodsToRetry: ['GET', 'OPTIONS', 'POST'],
     shouldResetTimeout: false,
-    statusCodesToRetry: [[100, 199], [429, 429], [500, 599, 502]],
+    statusCodesToRetry: [[100, 199], [429, 429], [500, 599]],
     onRetryAttempt: (err) => {
         const cfg = rax.getConfig(err);
-        return new Promise(resolve => setTimeout(resolve, cfg.retry * 1000));
+        return new Promise(resolve => setTimeout(resolve, cfg.retry * 600));
     }
 };
 rax.attach(client);
@@ -949,13 +949,9 @@ export default createStore({
                         .post("/LiveChat/FetchVisitors", custom.createRequest(requestData))
                         .then((response) => {
                             var result = custom.parseResponse(response);
-                            if (!result.kayako_livechat){
-                                localStorage.removeItem("config");
-                                context.commit("logout");
-                                router.push({name: "Login"});
-                                reject({status: false, message: "session timeout please login again"});
-                            }
-                            if (result.kayako_livechat.status && result.kayako_livechat.status._cdata === "-1") {
+                            if(!result.kayako_livechat){
+                                console.info('we are getting db or redis error!');
+                            }else if (result.kayako_livechat.status && result.kayako_livechat.status._cdata === "-1") {
                                 localStorage.removeItem("config");
                                 context.commit("logout");
                                 router.push({name: "Login"});
@@ -1365,12 +1361,11 @@ export default createStore({
 
                 var requestData = {
                     sessionid: context.state.config.sessionId,
-                    status: "1",
+                    status: context.state.currentUser.status,
                     chatobjectidlist: chatobjectidlist.join(','),
                     randno: custom.generateChatRandomNumber(),
                     xml: xmldata,
                 };
-
 
                 return new Promise((resolve, reject) => {
                     client

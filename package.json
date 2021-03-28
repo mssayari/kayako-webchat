@@ -1,6 +1,6 @@
 {
   "name": "kayako-web-chat",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -17,7 +17,8 @@
     "vue-toastification": "^2.0.0-rc.1",
     "vuex": "^4.0.0-rc.2",
     "webpack": "^4.46.0",
-    "xml-js": "^1.6.11"
+    "xml-js": "^1.6.11",
+    "retry-axios": "^2.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "^2.0.2",
@@ -34,7 +35,6 @@
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-vue": "^7.5.0",
     "postcss": "^7.0.35",
-    "retry-axios": "^2.4.0",
     "sass": "^1.32.6",
     "sass-loader": "^10.1.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.2"

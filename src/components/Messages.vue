@@ -2,7 +2,7 @@
   <div class="flex"
        :class="{'flex-row-reverse':msg.from==='staff' && msg.userId ===null,'clearfix items-center justify-center w-full':msg.from==='system'}"
        v-for="(msg,index) in chat.messages" v-bind:key="index">
-    <div class="min-w-1/4 mx-4 my-2 p-2 rounded-lg rtl shadow-sm border-white"
+    <div class="min-w-1/3 mx-4 my-2 p-2 rounded-lg rtl shadow-sm border-white"
          :class="{'user-msg':msg.from==='user','warning-msg':msg.from==='system',
          'staff-msg':msg.from==='staff' && msg.userId ===null,
          'co-staff-msg':msg.from==='staff' && msg.userId !==null}">
@@ -10,11 +10,11 @@
          v-html="nl2br(msg.content)"></p>
       <a v-if="msg.type==='image'" :href="msg.content" target="_blank"><img :src="msg.content"
                                                                             class=" mx-auto rounded w-96"></a>
-      <span class="ltr float-left mt-2"
+      <span class="ltr float-left mt-2 text-xs"
             :class="msg.type === 'noresponse' ? 'text-gray-700':'text-gray-500 dark:text-gray-400'">
         {{ timeFormat(msg.timestamp) }}
       </span>
-      <span class="ltr float-right mt-2"
+      <span class="ltr float-right mt-2 text-xs"
             :class="msg.type === 'noresponse' ? 'text-gray-700':'text-gray-500 dark:text-gray-400'">
         {{ msg.fullName }}
       </span>
