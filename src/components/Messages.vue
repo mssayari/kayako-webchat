@@ -7,15 +7,16 @@
          'staff-msg':msg.from==='staff' && msg.userId ===null,
          'co-staff-msg':msg.from==='staff' && msg.userId !==null}">
       <p v-if="msg.type === 'text' || msg.type === 'leave' || msg.type === 'enter' || msg.type === 'noresponse' "
-         v-html="nl2br(msg.content)"></p>
-      <a v-if="msg.type==='image'" :href="msg.content" target="_blank"><img :src="msg.content"
-                                                                            class=" mx-auto rounded w-96"></a>
+         v-html="nl2br(msg.content)" :class="{'text-gray-100':msg.from==='staff' || msg.type === 'noresponse'}"></p>
+      <a v-if="msg.type==='image'" :href="msg.content[0]" target="_blank">
+        <img :src="msg.content[1]" class=" mx-auto rounded w-96">
+      </a>
       <span class="ltr float-left mt-2 text-xs"
-            :class="msg.type === 'noresponse' ? 'text-gray-700':'text-gray-500 dark:text-gray-400'">
+            :class="msg.from==='staff' || msg.type === 'noresponse'?'text-gray-300':'text-gray-500'">
         {{ timeFormat(msg.timestamp) }}
       </span>
       <span class="ltr float-right mt-2 text-xs"
-            :class="msg.type === 'noresponse' ? 'text-gray-700':'text-gray-500 dark:text-gray-400'">
+            :class="msg.from==='staff' || msg.type === 'noresponse' ?'text-gray-300':'text-gray-500'">
         {{ msg.fullName }}
       </span>
     </div>
@@ -83,7 +84,7 @@ export default {
 }
 
 .staff-msg {
-  @apply bg-green-550 dark:bg-green-900 dark:text-gray-300 ;
+  @apply bg-orange-600 dark:bg-orange-600 dark:text-gray-300 ;
 }
 
 .co-staff-msg {
@@ -91,6 +92,6 @@ export default {
 }
 
 .warning-msg {
-  @apply bg-red-400 float-left dark:bg-red-500 dark:text-gray-300;
+  @apply bg-red-500 float-left dark:bg-red-500 dark:text-gray-300;
 }
 </style>

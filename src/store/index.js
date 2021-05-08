@@ -6,7 +6,7 @@ import router from "../router/index";
 import * as rax from 'retry-axios';
 
 
-const devUrl = 'http://kayakosnap.ltd/winapp/index.php?';
+const devUrl = 'http://kayako.ltd/winapp/index.php?';
 
 const client = axios.create({
     baseURL: window.location.hostname !== "localhost" ? window.location.origin + "/winapp/index.php?" : devUrl,
@@ -1297,7 +1297,7 @@ export default createStore({
                             let activeChatIndex = context.state.activeChats.indexOf(activeChatObject);
                             let content = '';
                             if (response.data.length > 1) {
-                                content = response.data[1];
+                                content = response.data;
                                 //append it in message list
                                 if (activeChatIndex > -1) {
                                     context.state.activeChats[activeChatIndex].messages.push({

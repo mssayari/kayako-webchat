@@ -11,8 +11,17 @@ module.exports = {
                 gray: colors.gray,
                 kayako: {
                     purple: '#40364D',
-                    'green-500': '#06df70',
-                    'green-700': '#00b36e',
+                },
+                kblue: {
+                    100: '#85b8c1',
+                    200: '#69aab5',
+                    300: '#4eafcb',
+                    400: '#339bba',
+                },
+                orange: {
+                    500: '#f37036',
+                    600: '#f15713',
+                    700: '#e05720',
                 },
                 green: {
                     '550': '#00d170',

@@ -4,7 +4,7 @@
       <div class="flex flex-row-reverse items-center justify-between h-12">
         <div class="flex items-center flex-row-reverse">
           <div class="flex-shrink-0 hidden sm:block">
-            <img class="h-8" src="../assets/images/logo_fa.svg" alt="Workflow">
+            <img class="h-8" src="../assets/images/logo_dark.svg" alt="Workflow">
           </div>
           <div class="mr-2 flex">
             <!-- Mobile menu button -->
@@ -120,7 +120,7 @@
                @click="selectChat(item.chatObjectId)">
               <span class="cursor-pointer text-right">
                 {{ item.userFullName }} <br/>
-                {{ item.userEmail.replace('@snapp.cab', '') }}
+                {{ item.userEmail }}
               </span>
               <span class="flex h-3 w-3 relative mr-2">
                 <span v-if="item.newMessagesCount > 0"
@@ -187,7 +187,7 @@
                       dark:bg-gray-800 overflow-y-auto max-h-64"
                       aria-label="submenu">
                     <li v-for="(department, index) in departments" :key="index"
-                        class="px-2 pb-1 hover:text-green-550">
+                        class="px-2 pb-1 hover:text-kblue-300">
                       <span class="cursor-pointer"
                             @click="transfer(selectedChat,'department',department.id)">{{ department.title }}</span>
                     </li>
@@ -208,7 +208,7 @@
                        dark:bg-gray-800 overflow-y-auto max-h-64"
                       aria-label="submenu">
                     <li v-for="(team, index) in teams" :key="index"
-                        class="px-2 pb-1 hover:text-green-550">
+                        class="px-2 pb-1 hover:text-kblue-300">
                       <span class="cursor-pointer" @click="transfer(selectedChat,'staffgroup',team.id)">
                         {{ team.title }}
                       </span>
@@ -218,16 +218,6 @@
               </ul>
             </div>
           </div>
-          <button type="button" @click="sendCode()"
-                  class="inline-flex items-center px-2 py-1 border border-gray-300 dark:border-gray-400 rounded-md
-                    shadow-sm text-sm
-                    text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
-                    hover:text-gray-800 dark:hover:text-gray-300 focus:outline-none focus:ring-0">
-            <svg class="feature-icon -ml-1 mr-2 h-4 w-4">
-              <use xlink:href="fonts/feather-sprite.svg#hash"/>
-            </svg>
-            ارسال کد
-          </button>
           <button type="button" @click="endChat()"
                   class="text-white inline-flex items-center px-2 py-1  rounded-md
                         shadow-sm text-sm bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500
@@ -242,7 +232,8 @@
         <div class="h-full bg-white dark:bg-gray-900 text-gray-800 text-sm overflow-y-auto font-normal"
              ref="chatContainer">
           <div class="h-full flex p-8 items-center justify-center" v-if="!selectedChat">
-            <img src="../assets/images/logo.svg" class="w-1/2">
+            <img v-if="theme === 'dark'" src="../assets/images/logo_dark.svg" class="w-1/2">
+            <img v-if="theme === 'light'" src="../assets/images/logo.svg" class="w-1/2">
           </div>
 
           <div v-if="selectedChat">
@@ -254,7 +245,7 @@
             <button type="button" class="focus:outline-none pr-1" :disabled="!isSelectedChatActive"
                     @click="selectAttachment()">
               <svg class="mx-auto h-10 w-10 text-gray-400"
-                   :stroke="isSelectedChatActive? '#43be80':'#6c757d'" fill="none" viewBox="0 0 48 48"
+                   :stroke="isSelectedChatActive? '#4eafcb':'#6c757d'" fill="none" viewBox="0 0 48 48"
                    aria-hidden="true">
                 <path
                     d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
@@ -341,7 +332,7 @@
           <template v-for="(team, index) in staffList" v-bind:key="index">
             <div class="pt-2 pr-4 flex justify-between flex-row-reverse items-center"
                  @click="team.display = !team.display">
-              <h3 class="text-green-500 font-medium">{{ team.title }}</h3>
+              <h3 class="text-kblue-300 font-medium">{{ team.title }}</h3>
 
               <svg class="feature-icon w-4 h-4">
                 <use v-if="!team.display && team.staff" xlink:href="fonts/feather-sprite.svg#minus"/>
@@ -400,7 +391,7 @@
             <button class="w-10 h-6 bg-gray-300 rounded-full flex-shrink-0 p-1 duration-300 ease-in-out
                            focus:outline-none"
                     @click="toggleMessageSound()"
-                    :class="{ 'bg-green-550': messageSoundActive}">
+                    :class="{ 'bg-kblue-300': messageSoundActive}">
               <div class="bg-white w-4 h-4 rounded-full shadow-md duration-300 ease-in-out transform"
                    :class="{ '-translate-x-4': messageSoundActive}"></div>
             </button>
@@ -410,9 +401,9 @@
 
       <template #footer>
         <button @click="closeSettingModal"
-                class="inline-flex items-center px-4 py-2 bg-green-550 border border-transparent
-    rounded-md text-xs text-white uppercase ltr:tracking-widest hover:bg-green-650
-    dark:hover:bg-green-650 active:bg-green-550 focus:outline-none focus:border-gray-900
+                class="inline-flex items-center px-4 py-2 bg-kblue-300 border border-transparent
+    rounded-md text-xs text-white uppercase ltr:tracking-widest hover:bg-kblue-400
+    dark:hover:bg-kblue-400 active:bg-green-550 focus:outline-none focus:border-gray-900
     transition ease-in-out duration-150">ذخیره
         </button>
       </template>
@@ -859,30 +850,6 @@ export default {
       this.$refs.msg.focus()
       this.isCannedMenuOpen = false;
     },
-    sendCode() {
-      let message = Math.floor(100000 + Math.random() * 900000).toString()
-      this.processing = true
-      this.$store
-          .dispatch("sendMessage", {
-            chatObjectId: this.selectedChat,
-            type: "text",
-            message: message,
-          })
-          .then(() => {
-            message = '';
-            this.scrollToEnd();
-          })
-          .catch((error) => {
-            this.toast.error('مشکل اتصال به سرور', {
-              position: POSITION.TOP_RIGHT
-            });
-            this.createNotification();
-            console.log(error);
-          })
-          .finally(() => {
-            this.processing = false;
-          });
-    },
     endChat() {
       if (this.selectedChat) {
 
@@ -1012,7 +979,7 @@ export default {
 
 .side-tab-active {
   @apply text-gray-800 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-200 border-b-2 font-medium
-  border-gray-800 dark:border-gray-400 bg-gray-200 dark:bg-gray-800
+  border-kblue-300 dark:border-gray-400 dark:bg-gray-800
 }
 
 </style>

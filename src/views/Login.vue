@@ -3,7 +3,8 @@
       class="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 shadow px-4 py-5 rounded-lg mb-6">
       <div>
-        <img class="mx-auto h-12 w-auto" src="../assets/images/logo.svg" alt="Workflow">
+        <img v-if="theme === 'dark'" class="mx-auto h-12 w-auto" src="../assets/images/logo_dark.svg" alt="Workflow">
+        <img v-if="theme === 'light'" class="mx-auto h-12 w-auto" src="../assets/images/logo.svg" alt="Workflow">
         <h3 class="mt-6 text-center text-3xl font-medium text-gray-900 dark:text-gray-100">
           سیستم گفتگوی آنلاین
         </h3>
@@ -38,7 +39,7 @@
                   focus:ring-offset-2 focus:ring-gray-500">
           <span class="absolute left-0 inset-y-0 flex items-center pl-3">
             <!-- Heroicon name: lock-closed -->
-            <svg class="feature-icon h-5 w-5 text-green-550 group-hover:text-green-650">
+            <svg class="feature-icon h-5 w-5 text-orange-500 group-hover:text-orange-600">
               <use xlink:href="fonts/feather-sprite.svg#lock"/>
             </svg>
           </span>

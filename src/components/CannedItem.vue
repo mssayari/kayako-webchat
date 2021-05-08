@@ -1,8 +1,8 @@
 <template>
   <li>
     <div @click="isFolder? toggle() : clickHandler(item)"
-         class="flex justify-between flex-row-reverse py-2 px-1 hover:text-green-500"
-         :class="{'font-medium': isFolder,' cursor-pointer': !isFolder,'text-green-500':isFolder && isOpen}">
+         class="flex justify-between flex-row-reverse py-2 px-1 hover:text-kblue-300"
+         :class="{'font-medium': isFolder,' cursor-pointer': !isFolder,'text-kblue-300':isFolder && isOpen}">
       <svg class="feature-icon w-3 h-3">
         <use v-if="indent" xlink:href="fonts/feather-sprite.svg#corner-down-left"/>
       </svg>
