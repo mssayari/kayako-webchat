@@ -3,19 +3,18 @@
     <div class="w-full mx-auto px-4 sm:px-6 lg:px-6">
       <div class="flex flex-row-reverse items-center justify-between h-12">
         <div class="flex items-center flex-row-reverse">
-          <div class="-mr-2 flex sm:hidden">
-            <!-- Mobile menu button -->
-            <button
-                class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white focus:outline-none focus:ring-0">
-              <span class="sr-only">Open main menu</span>
-              <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                   stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-              </svg>
-            </button>
-          </div>
           <div class="flex-shrink-0 hidden sm:block">
             <img class="h-8" src="../assets/images/logo_fa.svg" alt="Workflow">
+          </div>
+          <div class="mr-2 flex">
+            <!-- Mobile menu button -->
+            <button @click="toggleSideMenu()"
+                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white focus:outline-none focus:ring-0">
+              <span class="sr-only">Open main menu</span>
+              <svg class="feature-icon block h-6 w-6">
+                <use xlink:href="fonts/feather-sprite.svg#menu"/>
+              </svg>
+            </button>
           </div>
           <div class="">
             <div class="mr-5 flex flex-row-reverse items-baseline space-x-4">
@@ -135,7 +134,7 @@
         </ul>
         <div class="tools flex flex-row-reverse justify-start py-1 space-x-3 mr-3"
              v-if="selectedChat">
-          <div class="relative inline-block text-right px-2" v-click-outside="closeCannedMenu">
+          <div class="relative inline-block text-right pl-2" v-click-outside="closeCannedMenu">
             <button type="button" :disabled="!isSelectedChatActive" @click.prevent="toggleCannedMenu"
                     class="inline-flex items-center px-2 py-1 border border-gray-300 dark:border-gray-400
                     rounded-md shadow-sm text-sm
@@ -158,7 +157,7 @@
               </ul>
             </div>
           </div>
-          <div class="relative inline-block text-right px-2" v-click-outside="closeTransferMenu">
+          <div class="relative inline-block text-right" v-click-outside="closeTransferMenu">
             <button type="button" @click="toggleTransferMenu"
                     class="inline-flex items-center px-2 py-1 border border-gray-300 dark:border-gray-400 rounded-md
                     shadow-sm text-sm
@@ -219,6 +218,16 @@
               </ul>
             </div>
           </div>
+          <button type="button" @click="sendCode()"
+                  class="inline-flex items-center px-2 py-1 border border-gray-300 dark:border-gray-400 rounded-md
+                    shadow-sm text-sm
+                    text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
+                    hover:text-gray-800 dark:hover:text-gray-300 focus:outline-none focus:ring-0">
+            <svg class="feature-icon -ml-1 mr-2 h-4 w-4">
+              <use xlink:href="fonts/feather-sprite.svg#hash"/>
+            </svg>
+            ارسال کد
+          </button>
           <button type="button" @click="endChat()"
                   class="text-white inline-flex items-center px-2 py-1  rounded-md
                         shadow-sm text-sm bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500
@@ -263,7 +272,8 @@
         </footer>
       </div>
       <!-- side menu -->
-      <div class="flex flex-col min-w-1/4 h-full overflow-y-hidden mx-2
+      <div v-if="isSideMenuOpen"
+           class="flex flex-col min-w-1/4 h-full overflow-y-hidden mx-2
       dark:bg-gray-800 bg-white border dark:border-gray-600 rounded-lg">
         <div class="w-full">
           <nav class="flex flex-row-reverse bg-gray-100 dark:bg-gray-800">
@@ -522,6 +532,7 @@ export default {
         // this.createNotification();
         this.playSound();
         this.sideMenuSelectedTab = 'chats';
+        this.isSideMenuOpen = true;
       }
     }
   },
@@ -592,6 +603,7 @@ export default {
       });
     },
     logout() {
+      this.selectedChat = null
       this.$store
           .dispatch("logout")
           .then(() => {
@@ -815,6 +827,28 @@ export default {
     },
     sendCanned(canned) {
       let message = ''
+      if (canned.image) {
+        this.processing = true
+        this.$store
+            .dispatch("sendMessage", {
+              chatObjectId: this.selectedChat,
+              type: "image",
+              message: canned.image,
+            })
+            .then(() => {
+              this.scrollToEnd();
+            })
+            .catch((error) => {
+              this.toast.error('مشکل اتصال به سرور', {
+                position: POSITION.TOP_RIGHT
+              });
+              this.createNotification();
+              console.log(error);
+            })
+            .finally(() => {
+              this.processing = false;
+            });
+      }
       if (canned.message) {
         message += canned.message;
       }
@@ -824,6 +858,30 @@ export default {
       this.message = message
       this.$refs.msg.focus()
       this.isCannedMenuOpen = false;
+    },
+    sendCode() {
+      let message = Math.floor(100000 + Math.random() * 900000).toString()
+      this.processing = true
+      this.$store
+          .dispatch("sendMessage", {
+            chatObjectId: this.selectedChat,
+            type: "text",
+            message: message,
+          })
+          .then(() => {
+            message = '';
+            this.scrollToEnd();
+          })
+          .catch((error) => {
+            this.toast.error('مشکل اتصال به سرور', {
+              position: POSITION.TOP_RIGHT
+            });
+            this.createNotification();
+            console.log(error);
+          })
+          .finally(() => {
+            this.processing = false;
+          });
     },
     endChat() {
       if (this.selectedChat) {
@@ -847,7 +905,7 @@ export default {
     },
     cronTask() {
       this.cron = setInterval(() => {
-        if (this.isCronRunning){
+        if (this.isCronRunning) {
           return;
         }
         this.isCronRunning = true;

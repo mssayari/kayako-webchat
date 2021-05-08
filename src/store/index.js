@@ -831,7 +831,7 @@ export default createStore({
                     from: "staff",
                     fullName: state.currentUser.fullName,
                     timestamp: Math.round(new Date().getTime() / 1000),
-                    type: "text",
+                    type: params.type,
                     userId: null,
                 })
                 state.activeChats[activeChatIndex].warning = false;
